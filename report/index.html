@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
+  <title>hanbeam.kr</title>
+
+  <style>
+    :root{
+      --maxW: 520px;
+      --glass-bg: rgba(255,255,255,0.18);   /* 더 투명 */
+      --glass-border: rgba(255,255,255,0.18);
+
+      /* 하단 스택(아래부터 5px 간격) */
+      --gap: 5px;
+      --safeB: env(safe-area-inset-bottom);
+
+      --infoH: 42px;
+      --actionH: 107px;
+      --branchH: 34.5px;
+      --dotsH: 10px; /* 도트 영역(대략) */
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; margin:0; }
+    body{
+      background:#0b0b0b;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
+      overflow:hidden;
+      -webkit-text-size-adjust:100%;
+      text-size-adjust:100%;
+    }
+
+    .wrap{
+      width:100vw;
+      height:100vh;
+      height:100dvh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .canvas{
+      position:relative;
+      width:min(100vw, var(--maxW));
+      aspect-ratio:390/844;
+      max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      border-radius:22px;
+      overflow:hidden;
+      background:#000;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.45);
+      touch-action: pan-y;
+    }
+
+    /* ✅ 배경: 자르지 않음(상단 기준점) */
+    .bg{
+      position:absolute;
+      inset:0;
+      z-index:0;
+      overflow:hidden;
+    }
+    .bg img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      object-position: top center;
+      opacity:0;
+      transition: opacity .6s ease;
+      filter: contrast(1.08) saturate(1.05);
+      transform: translateZ(0);
+      will-change: opacity;
+    }
+    .bg img.active{ opacity:1; }
+
+    /* ✅ 클릭 막지 않게 반드시 필요 */
+    .overlay{
+      position:absolute; inset:0; z-index:1;
+      pointer-events:none; /* 🔥 이거 없으면 버튼 다 죽음 */
+      background: linear-gradient(to bottom,
+        rgba(0,0,0,0.00) 42%,
+        rgba(0,0,0,0.58) 100%);
+    }
+
+    .glass{
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      box-shadow:
+        0 10px 24px rgba(0,0,0,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+
+    /* ===== 하단 스택(아래에서부터 쌓기) =====
+       infoBar(bottom) -> actionPanel -> branch -> dots
+       간격은 모두 5px
+    */
+
+    /* 사업자 정보 보기 바 */
+    .infoBar{
+      position:absolute;
+      z-index:10;
+      left: calc(16.5 / 390 * 100%);
+      width: calc(357 / 390 * 100%);
+      height: var(--infoH);
+      bottom: calc(12px + var(--safeB));
+      border-radius: 14px;
+      background: rgba(0,0,0,0.42);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.92);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 12px;
+      font-weight: 900;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    /* 액션 패널 */
+    .action-panel{
+      position:absolute;
+      z-index:10;
+      left: calc(16.5 / 390 * 100%);
+      width: calc(357 / 390 * 100%);
+      height: var(--actionH);
+      bottom: calc(12px + var(--safeB) + var(--infoH) + var(--gap));
+      border-radius: 22px;
+      padding: 10px 12px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+    }
+
+    .btnRow{
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      padding: 0 14px;
+      gap: 14px;
+    }
+    .btnCol{
+      width:64px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+      flex: 0 0 auto;
+    }
+
+    .actionPng{
+      width:64px;height:64px;
+      border-radius:18px;
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      display:block;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+      text-decoration:none;
+    }
+    .actionPng:active{ transform: translateY(1px); }
+
+    .btnLabel{
+      font-size:11px;
+      font-weight:900;
+      color: rgba(255,255,255,0.88);
+      text-shadow: 0 1px 8px rgba(0,0,0,0.45);
+      letter-spacing:-0.02em;
+      line-height:1;
+      user-select:none;
+      white-space:nowrap;
+    }
+
+    /* 지점 선택 */
+    .branch{
+      position:absolute;
+      z-index:10;
+      left: calc(16.5 / 390 * 100%);
+      width: calc(357 / 390 * 100%);
+      height: var(--branchH);
+      bottom: calc(
+        12px + var(--safeB)
+        + var(--infoH) + var(--gap)
+        + var(--actionH) + var(--gap)
+      );
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 0 12px;
+      cursor:pointer;
+      user-select:none;
+      color: rgba(255,255,255,0.92);
+      text-shadow: 0 1px 8px rgba(0,0,0,0.45);
+      gap: 8px;
+    }
+    .branch .txt{
+      font-weight:900;
+      font-size:13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      text-align:center;
+      line-height:1;
+    }
+    .branch svg{
+      width:14px; height:14px;
+      opacity:0.95;
+      flex: 0 0 auto;
+    }
+    .branch svg path{ stroke: rgba(255,255,255,0.92); }
+
+    /* 도트 */
+    .dots{
+      position:absolute;
+      z-index:10;
+      left:50%;
+      transform:translateX(-50%);
+      bottom: calc(
+        12px + var(--safeB)
+        + var(--infoH) + var(--gap)
+        + var(--actionH) + var(--gap)
+        + var(--branchH) + var(--gap)
+      );
+      display:flex;
+      gap:6px;
+      pointer-events:none;
+    }
+    .dot{
+      width:6px;height:6px;border-radius:50%;
+      background: rgba(255,255,255,0.35);
+    }
+    .dot.on{ background: rgba(255,255,255,0.95); }
+
+    /* Toast */
+    .toast{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      z-index: 30;
+      bottom: calc(
+        12px + var(--safeB)
+        + var(--infoH) + var(--gap)
+        + var(--actionH) + 18px
+      );
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.75);
+      color: rgba(255,255,255,0.95);
+      font-weight: 900;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+      white-space:nowrap;
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    /* 모달 공통 */
+    .modal-backdrop{
+      position:absolute; inset:0; z-index:50;
+      display:none; align-items:flex-end; justify-content:center;
+      padding: 16px;
+      background: rgba(0,0,0,0.52);
+    }
+    .modal-backdrop.open{ display:flex; }
+
+    .modal{
+      width:100%;
+      max-width:520px;
+      border-radius: 22px;
+      overflow:hidden;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.22);
+    }
+    .modalHead{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 12px 14px;
+      color: rgba(15,23,42,0.92);
+      font-weight:900;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      font-size: 14px;
+      line-height:1;
+    }
+    .modalHead button{
+      border:none; background:transparent; cursor:pointer;
+      font-weight:900; font-size: 13px;
+      color: rgba(15,23,42,0.65);
+    }
+    .modalBody{
+      padding: 10px 0;
+      max-height: 62vh;
+      overflow:auto;
+    }
+    .item{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      cursor:pointer;
+      color: rgba(15,23,42,0.92);
+      font-weight:900;
+      font-size: 14px;
+      background: rgba(255,255,255,0.25);
+    }
+    .item:last-child{ border-bottom:none; }
+    .item:active{ background: rgba(56,163,255,0.10); }
+    .badge{
+      font-size: 11px;
+      font-weight:900;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(56,163,255,0.14);
+      border: 1px solid rgba(56,163,255,0.25);
+      white-space:nowrap;
+      color: rgba(15,23,42,0.70);
+      line-height: 1;
+    }
+
+    .bizText{
+      padding: 14px 16px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(15,23,42,0.82);
+      white-space: pre-line;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="canvas" id="canvas">
+
+      <div class="bg" aria-hidden="true">
+        <img class="active" src="assets/bg1.webp" alt="">
+        <img src="assets/bg2.webp" alt="">
+        <img src="assets/bg3.webp" alt="">
+        <img src="assets/bg4.webp" alt="">
+      </div>
+      <div class="overlay" aria-hidden="true"></div>
+
+      <div class="dots" id="dots" aria-hidden="true"></div>
+
+      <div class="branch glass" id="openBranch" role="button" tabindex="0">
+        <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
+        <!-- ✅ caret 복구 -->
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="action-panel glass">
+        <div class="btnRow">
+          <div class="btnCol">
+            <a class="actionPng" id="btnCall" href="#"
+              style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
+            <div class="btnLabel">전화문의</div>
+          </div>
+
+          <div class="btnCol">
+            <a class="actionPng" id="btnKakao" href="#"
+              style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
+            <div class="btnLabel">카톡문의</div>
+          </div>
+
+          <div class="btnCol">
+            <a class="actionPng" id="btnReserve" href="#"
+              style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
+            <div class="btnLabel">네이버예약</div>
+          </div>
+
+          <div class="btnCol">
+            <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr"
+              style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
+            <div class="btnLabel">더 알아보기</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="infoBar" id="openBiz" role="button" tabindex="0">
+        광고운영사 정보 보기
+      </div>
+
+      <div class="toast" id="toast">준비중입니다.</div>
+
+      <!-- 지점 선택 모달 -->
+      <div class="modal-backdrop" id="branchBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
+          <div class="modalHead">
+            <div>지점 선택</div>
+            <button id="closeBranch" type="button">닫기</button>
+          </div>
+          <div class="modalBody" id="branchList"></div>
+        </div>
+      </div>
+
+      <!-- 사업자정보 모달 -->
+      <div class="modal-backdrop" id="bizBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="광고운영사 정보">
+          <div class="modalHead">
+            <div>광고운영사 정보</div>
+            <button id="closeBiz" type="button">닫기</button>
+          </div>
+          <div class="modalBody">
+            <div class="bizText">
+|  광고운영사 정보  |
+운영사 : ㈜브이커뮤니케이션    |    대표자 : 김정태    |    사업자등록번호 : 744-87-02865
+주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)
+고객센터 : 051-711-3722    |    이메일 : contact@v-comm.co.kr    |    제휴사 : 한빔한복 전지점
+
+본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.
+한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    /* ✅ GAS WebApp URL (사용자 제공) */
+    const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
+
+    /* ✅ 배경 전환 속도 5.5초 */
+    const SLIDE_INTERVAL_MS = 5500;
+
+    const BRANCHES = [
+      { name:"부산점",     phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812" },
+      { name:"부산센텀점", phone:"010-3052-2325", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
+      { name:"김해점",     phone:"010.8065.2325", reserve:"https://booking.naver.com/booking/6/bizes/1402679" },
+      { name:"창원점",     phone:"055.263.2325", reserve:"https://booking.naver.com/booking/6/bizes/843111" },
+      { name:"양산점",     phone:"055.912.0425", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
+      { name:"진주점",     phone:"010.5654.2407", reserve:"https://m.booking.naver.com/booking/6/bizes/1485854" },
+      { name:"인천점",     phone:"032.283.2325", reserve:"https://m.booking.naver.com/booking/13/bizes/1039475" },
+      { name:"안산점",     phone:"010.6591.2322", reserve:"https://m.booking.naver.com/booking/6/bizes/1500008" },
+      { name:"마산점",     phone:"010.8832.2325", reserve:"https://booking.naver.com/booking/6/bizes/1526541" },
+      { name:"울산점",     phone:"010.9807.2325", reserve:"https://booking.naver.com/booking/6/bizes/1534767" },
+      { name:"대구점",     phone:"010-8492-2328", reserve:"https://m.place.naver.com/place/2043617700/ticket?entry=pll&bk_query=%ED%95%9C%EB%B9%94%ED%95%9C%EB%B3%B5" }
+    ];
+
+    function getDeviceType(){
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ? "mobile" : "pc";
+    }
+    function getSessionId(){
+      const k="HB_LANDING_SID";
+      let v=localStorage.getItem(k);
+      if(!v){
+        v=(crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+"_"+Math.random().toString(16).slice(2));
+        localStorage.setItem(k,v);
+      }
+      return v;
+    }
+    function toTelHref(phone){
+      const digits = String(phone || "").replace(/[^\d]/g,"");
+      return digits ? ("tel:" + digits) : "";
+    }
+
+    /* ✅ Safari/인앱 안정 로깅(기다리지 않음) */
+    function logEventNoWait(type, data = {}){
+      const payload = {
+        type,
+        sessionId: getSessionId(),
+        device: getDeviceType(),
+        branch: state.branch?.name || "",
+        action: data.action || "",
+        href: data.href || "",
+        page: location.pathname || "/",
+        referrer: document.referrer || "",
+        ua: navigator.userAgent || "",
+        ts: Date.now()
+      };
+
+      try{
+        const blob = new Blob([JSON.stringify(payload)], {type:"text/plain;charset=utf-8"});
+        if(navigator.sendBeacon){
+          navigator.sendBeacon(LOG_ENDPOINT, blob);
+          return;
+        }
+      }catch(e){}
+
+      try{
+        fetch(LOG_ENDPOINT, {
+          method:"POST",
+          headers:{ "Content-Type":"text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+          keepalive:true
+        });
+      }catch(e){}
+    }
+
+    /* Toast */
+    const toastEl = document.getElementById("toast");
+    let toastTimer=null;
+    function showToast(msg){
+      toastEl.textContent = msg || "준비중입니다.";
+      toastEl.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer=setTimeout(()=>toastEl.classList.remove("show"), 1400);
+    }
+
+    /* 모달/상태 */
+    const state = { branch:null };
+
+    const branchBackdrop = document.getElementById("branchBackdrop");
+    const openBranch = document.getElementById("openBranch");
+    const closeBranch = document.getElementById("closeBranch");
+    const branchList = document.getElementById("branchList");
+    const branchText = document.getElementById("branchText");
+
+    function openBranchModal(){
+      branchBackdrop.classList.add("open");
+      branchBackdrop.setAttribute("aria-hidden","false");
+    }
+    function closeBranchModal(){
+      branchBackdrop.classList.remove("open");
+      branchBackdrop.setAttribute("aria-hidden","true");
+    }
+
+    function renderBranchList(){
+      branchList.innerHTML = "";
+      BRANCHES.forEach(b=>{
+        const el=document.createElement("div");
+        el.className="item";
+        el.innerHTML = `<div>${b.name}</div><div class="badge">선택</div>`;
+        el.addEventListener("click", ()=>selectBranch(b));
+        branchList.appendChild(el);
+      });
+    }
+    function selectBranch(b){
+      state.branch=b;
+      branchText.textContent = `${b.name} 선택됨 | 다시 선택하려면 눌러주세요`;
+      logEventNoWait("branch_select", { action:"branch_select", href:"" });
+      closeBranchModal();
+    }
+
+    renderBranchList();
+    openBranch.addEventListener("click", openBranchModal);
+    openBranch.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" ") openBranchModal(); });
+    closeBranch.addEventListener("click", closeBranchModal);
+    branchBackdrop.addEventListener("click", (e)=>{ if(e.target===branchBackdrop) closeBranchModal(); });
+
+    /* 사업자 정보 모달 */
+    const bizBackdrop = document.getElementById("bizBackdrop");
+    const openBiz = document.getElementById("openBiz");
+    const closeBiz = document.getElementById("closeBiz");
+
+    function openBizModal(){
+      bizBackdrop.classList.add("open");
+      bizBackdrop.setAttribute("aria-hidden","false");
+      logEventNoWait("click", { action:"biz_open", href:"" });
+    }
+    function closeBizModal(){
+      bizBackdrop.classList.remove("open");
+      bizBackdrop.setAttribute("aria-hidden","true");
+    }
+    openBiz.addEventListener("click", openBizModal);
+    openBiz.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" ") openBizModal(); });
+    closeBiz.addEventListener("click", closeBizModal);
+    bizBackdrop.addEventListener("click", (e)=>{ if(e.target===bizBackdrop) closeBizModal(); });
+
+    /* 버튼 */
+    const btnCall=document.getElementById("btnCall");
+    const btnKakao=document.getElementById("btnKakao");
+    const btnReserve=document.getElementById("btnReserve");
+    const btnMore=document.getElementById("btnMore");
+
+    function requireBranchOrOpenModal(e){
+      if(!state.branch){
+        e.preventDefault();
+        openBranchModal();
+        return true;
+      }
+      return false;
+    }
+
+    btnCall.addEventListener("click",(e)=>{
+      e.preventDefault();
+      if(requireBranchOrOpenModal(e)) return;
+      const telHref = toTelHref(state.branch.phone);
+      if(!telHref) return;
+      logEventNoWait("click",{ action:"call", href:telHref });
+      window.location.href = telHref;
+    });
+
+    btnKakao.addEventListener("click",(e)=>{
+      e.preventDefault();
+      showToast("준비중입니다.");
+      logEventNoWait("click",{ action:"kakao_pending", href:"" });
+    });
+
+    btnReserve.addEventListener("click",(e)=>{
+      e.preventDefault();
+      if(requireBranchOrOpenModal(e)) return;
+      const href = state.branch.reserve || "";
+      logEventNoWait("click",{ action:"reserve", href });
+      if(href) window.location.href = href;
+    });
+
+    btnMore.addEventListener("click",()=>{
+      logEventNoWait("click",{ action:"more", href:btnMore.href });
+    });
+
+    /* 방문 1회 */
+    (function(){
+      const key="HB_VISIT_"+getSessionId();
+      if(!sessionStorage.getItem(key)){
+        sessionStorage.setItem(key,"1");
+        logEventNoWait("visit",{ action:"visit", href:"" });
+      }
+    })();
+
+    /* 슬라이드 + 도트 + 스와이프 */
+    const canvas=document.getElementById("canvas");
+    const slides=Array.from(document.querySelectorAll(".bg img"));
+    const dotsWrap=document.getElementById("dots");
+    let idx=0, timer=null, pausedUntil=0;
+
+    function buildDots(){
+      dotsWrap.innerHTML="";
+      slides.forEach((_,i)=>{
+        const d=document.createElement("div");
+        d.className="dot"+(i===idx?" on":"");
+        dotsWrap.appendChild(d);
+      });
+    }
+    function setDots(){
+      const ds=dotsWrap.querySelectorAll(".dot");
+      ds.forEach((d,i)=>d.classList.toggle("on", i===idx));
+    }
+    function showSlide(n){
+      slides[idx].classList.remove("active");
+      idx=(n+slides.length)%slides.length;
+      slides[idx].classList.add("active");
+      setDots();
+    }
+    function next(){ showSlide(idx+1); }
+    function prev(){ showSlide(idx-1); }
+
+    function startAuto(){
+      stopAuto();
+      timer=setInterval(()=>{
+        if(Date.now()<pausedUntil) return;
+        next();
+      }, SLIDE_INTERVAL_MS);
+    }
+    function stopAuto(){ if(timer){ clearInterval(timer); timer=null; } }
+    function pauseAuto(ms){ pausedUntil=Date.now()+ms; }
+
+    buildDots();
+    startAuto();
+
+    let x0=null,y0=null,moved=false;
+    canvas.addEventListener("touchstart",(e)=>{
+      if(!e.touches||e.touches.length!==1) return;
+      x0=e.touches[0].clientX;
+      y0=e.touches[0].clientY;
+      moved=false;
+    },{passive:true});
+    canvas.addEventListener("touchmove",(e)=>{
+      if(x0===null) return;
+      const dx=e.touches[0].clientX-x0;
+      const dy=e.touches[0].clientY-y0;
+      if(Math.abs(dx)>18 && Math.abs(dx)>Math.abs(dy)) moved=true;
+    },{passive:true});
+    canvas.addEventListener("touchend",(e)=>{
+      if(x0===null) return;
+      const x1=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientX:x0;
+      const dx=x1-x0;
+      if(moved && Math.abs(dx)>42){
+        if(dx<0) next(); else prev();
+        pauseAuto(8000);
+      }
+      x0=null;y0=null;moved=false;
+    },{passive:true});
+  </script>
+</body>
+</html>

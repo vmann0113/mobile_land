@@ -1,685 +1,515 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
-  <title>hanbeam.kr</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1"/>
+<title>한빔한복 지점별 광고유입 리포트</title>
+<style>
+  :root{
+    --sky:#38a3ff;
+    --sky2:#e9f4ff;
+    --text:#0f172a;
+    --muted:#64748b;
+    --line:#b9ddff;
+    --card:#ffffff;
 
-  <style>
-    :root{
-      --maxW: 520px;
-      --glass-bg: rgba(255,255,255,0.18);   /* 더 투명 */
-      --glass-border: rgba(255,255,255,0.18);
+    --r:16px;
+    --gap:10px;
 
-      /* 하단 스택(아래부터 5px 간격) */
-      --gap: 5px;
-      --safeB: env(safe-area-inset-bottom);
+    /* “한 화면” 기준(대략) */
+    --vh: 1vh;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"NanumGothicNeo","Nanum Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+    background:#fff;
+    color:var(--text);
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+  }
 
-      --infoH: 42px;
-      --actionH: 107px;
-      --branchH: 34.5px;
-      --dotsH: 10px; /* 도트 영역(대략) */
-    }
+  /* ✅ 스크롤 없이 한 화면 기본 (필요시 내부만 스크롤) */
+  .page{
+    height:100vh;
+    height:100dvh;
+    overflow:hidden;
+  }
 
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; margin:0; }
-    body{
-      background:#0b0b0b;
-      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
-      overflow:hidden;
-      -webkit-text-size-adjust:100%;
-      text-size-adjust:100%;
-    }
+  .wrap{
+    max-width:720px;
+    height:100%;
+    margin:0 auto;
+    padding:14px 14px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
 
-    .wrap{
-      width:100vw;
-      height:100vh;
-      height:100dvh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-    }
+  h1{
+    margin:2px 0 0;
+    font-size:18px;
+    line-height:1.2;
+    letter-spacing:-0.02em;
+  }
 
-    .canvas{
-      position:relative;
-      width:min(100vw, var(--maxW));
-      aspect-ratio:390/844;
-      max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      border-radius:22px;
-      overflow:hidden;
-      background:#000;
-      box-shadow: 0 20px 80px rgba(0,0,0,0.45);
-      touch-action: pan-y;
-    }
+  .panel{
+    border:1px solid #e2e8f0;
+    border-radius: var(--r);
+    background:#fff;
+    padding:12px;
+  }
 
-    /* ✅ 배경: 자르지 않음(상단 기준점) */
-    .bg{
-      position:absolute;
-      inset:0;
-      z-index:0;
-      overflow:hidden;
-    }
-    .bg img{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      object-fit: cover;
-      object-position: top center;
-      opacity:0;
-      transition: opacity .6s ease;
-      filter: contrast(1.08) saturate(1.05);
-      transform: translateZ(0);
-      will-change: opacity;
-    }
-    .bg img.active{ opacity:1; }
+  /* ===== 상단 컨트롤 ===== */
+  .controls{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:10px;
+  }
+  .row2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .label{
+    font-size:12px;
+    color:var(--muted);
+    margin:0 0 6px;
+    font-weight:900;
+  }
+  select,input{
+    width:100%;
+    height:42px;
+    border-radius:12px;
+    border:1px solid #e2e8f0;
+    padding:0 12px;
+    font-size:14px;
+    outline:none;
+    background:#fff;
+  }
+  select:focus,input:focus{
+    border-color:var(--sky);
+    box-shadow:0 0 0 3px rgba(56,163,255,0.18);
+  }
+  .btn{
+    height:42px;
+    width:100%;
+    border:none;
+    border-radius:12px;
+    background:var(--sky);
+    color:#fff;
+    font-weight:1000;
+    cursor:pointer;
+  }
+  .btn:active{ transform: translateY(1px); }
 
-    /* ✅ 클릭 막지 않게 반드시 필요 */
-    .overlay{
-      position:absolute; inset:0; z-index:1;
-      pointer-events:none; /* 🔥 이거 없으면 버튼 다 죽음 */
-      background: linear-gradient(to bottom,
-        rgba(0,0,0,0.00) 42%,
-        rgba(0,0,0,0.58) 100%);
-    }
+  .help{
+    margin-top:8px;
+    font-size:12px;
+    color:var(--muted);
+    font-weight:800;
+    line-height:1.35;
+  }
 
-    .glass{
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
-      box-shadow:
-        0 10px 24px rgba(0,0,0,0.10),
-        inset 0 1px 0 rgba(255,255,255,0.35);
-    }
+  /* ===== 메인 콘텐츠(그래프+카드) ===== */
+  .main{
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
 
-    /* ===== 하단 스택(아래에서부터 쌓기) =====
-       infoBar(bottom) -> actionPanel -> branch -> dots
-       간격은 모두 5px
-    */
+  .status{
+    font-size:12px;
+    color:var(--muted);
+    font-weight:900;
+  }
 
-    /* 사업자 정보 보기 바 */
-    .infoBar{
-      position:absolute;
-      z-index:10;
-      left: calc(16.5 / 390 * 100%);
-      width: calc(357 / 390 * 100%);
-      height: var(--infoH);
-      bottom: calc(12px + var(--safeB));
-      border-radius: 14px;
-      background: rgba(0,0,0,0.42);
-      border: 1px solid rgba(255,255,255,0.14);
-      color: rgba(255,255,255,0.92);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size: 12px;
-      font-weight: 900;
-      cursor:pointer;
-      user-select:none;
-    }
+  /* 그래프: 탭 + 지표 */
+  .chartHead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .tabs{
+    display:flex;
+    gap:8px;
+  }
+  .tab{
+    border:1px solid #e2e8f0;
+    background:#fff;
+    color:var(--text);
+    height:34px;
+    padding:0 12px;
+    border-radius:999px;
+    font-weight:1000;
+    font-size:12px;
+    cursor:pointer;
+  }
+  .tab.on{
+    border-color:rgba(56,163,255,0.35);
+    background:rgba(56,163,255,0.10);
+    color:#0b4aa6;
+  }
+  .metric{
+    height:34px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:1000;
+    padding:0 10px;
+  }
 
-    /* 액션 패널 */
-    .action-panel{
-      position:absolute;
-      z-index:10;
-      left: calc(16.5 / 390 * 100%);
-      width: calc(357 / 390 * 100%);
-      height: var(--actionH);
-      bottom: calc(12px + var(--safeB) + var(--infoH) + var(--gap));
-      border-radius: 22px;
-      padding: 10px 12px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:center;
-    }
+  .svgBox{
+    border:1px solid #e2e8f0;
+    border-radius:14px;
+    background:#fff;
+    padding:8px;
+  }
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:8px;
+    font-size:12px;
+    color:var(--muted);
+    font-weight:900;
+  }
+  .dot{
+    width:10px;height:10px;border-radius:99px;display:inline-block;vertical-align:middle;margin-right:6px;
+    background: var(--sky);
+  }
+  .dot.gray{ background:#94a3b8; }
 
-    .btnRow{
-      width:100%;
-      display:flex;
-      justify-content:space-between;
-      padding: 0 14px;
-      gap: 14px;
-    }
-    .btnCol{
-      width:64px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:6px;
-      flex: 0 0 auto;
-    }
+  /* 카드: 기본 2x2만 보여주고 더보기 */
+  .cardsWrap{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .cards{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
+  .card{
+    border:2px solid var(--line);
+    border-radius:16px;
+    padding:12px 12px;
+    background:#fff;
+    min-height:92px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .card .t{
+    font-size:12px;
+    color:var(--muted);
+    font-weight:1000;
+  }
+  .card .v{
+    font-size:26px;
+    font-weight:1100;
+    letter-spacing:-0.02em;
+    color:var(--text);
+  }
 
-    .actionPng{
-      width:64px;height:64px;
-      border-radius:18px;
-      background-size:cover;
-      background-position:center;
-      background-repeat:no-repeat;
-      display:block;
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
-      text-decoration:none;
-    }
-    .actionPng:active{ transform: translateY(1px); }
+  .moreBtn{
+    height:38px;
+    border-radius:12px;
+    border:1px solid rgba(56,163,255,0.35);
+    background:rgba(56,163,255,0.10);
+    color:#0b4aa6;
+    font-weight:1000;
+    cursor:pointer;
+  }
+  .moreBtn:active{ transform: translateY(1px); }
 
-    .btnLabel{
-      font-size:11px;
-      font-weight:900;
-      color: rgba(255,255,255,0.88);
-      text-shadow: 0 1px 8px rgba(0,0,0,0.45);
-      letter-spacing:-0.02em;
-      line-height:1;
-      user-select:none;
-      white-space:nowrap;
-    }
+  /* ✅ “한 화면”이 목적이라 main 내부만 필요시 스크롤 */
+  .scrollArea{
+    flex:1;
+    min-height:0;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom: 6px;
+  }
 
-    /* 지점 선택 */
-    .branch{
-      position:absolute;
-      z-index:10;
-      left: calc(16.5 / 390 * 100%);
-      width: calc(357 / 390 * 100%);
-      height: var(--branchH);
-      bottom: calc(
-        12px + var(--safeB)
-        + var(--infoH) + var(--gap)
-        + var(--actionH) + var(--gap)
-      );
-      border-radius: 999px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding: 0 12px;
-      cursor:pointer;
-      user-select:none;
-      color: rgba(255,255,255,0.92);
-      text-shadow: 0 1px 8px rgba(0,0,0,0.45);
-      gap: 8px;
-    }
-    .branch .txt{
-      font-weight:900;
-      font-size:13px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      text-align:center;
-      line-height:1;
-    }
-    .branch svg{
-      width:14px; height:14px;
-      opacity:0.95;
-      flex: 0 0 auto;
-    }
-    .branch svg path{ stroke: rgba(255,255,255,0.92); }
+  /* 모바일에서 날짜 겹침 방지: 좁으면 1열 */
+  @media (max-width:390px){
+    .row2{ grid-template-columns:1fr; }
+  }
 
-    /* 도트 */
-    .dots{
-      position:absolute;
-      z-index:10;
-      left:50%;
-      transform:translateX(-50%);
-      bottom: calc(
-        12px + var(--safeB)
-        + var(--infoH) + var(--gap)
-        + var(--actionH) + var(--gap)
-        + var(--branchH) + var(--gap)
-      );
-      display:flex;
-      gap:6px;
-      pointer-events:none;
-    }
-    .dot{
-      width:6px;height:6px;border-radius:50%;
-      background: rgba(255,255,255,0.35);
-    }
-    .dot.on{ background: rgba(255,255,255,0.95); }
-
-    /* Toast */
-    .toast{
-      position:absolute;
-      left:50%;
-      transform:translateX(-50%);
-      z-index: 30;
-      bottom: calc(
-        12px + var(--safeB)
-        + var(--infoH) + var(--gap)
-        + var(--actionH) + 18px
-      );
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.75);
-      color: rgba(255,255,255,0.95);
-      font-weight: 900;
-      font-size: 12px;
-      opacity: 0;
-      pointer-events:none;
-      transition: opacity .18s ease, transform .18s ease;
-      white-space:nowrap;
-    }
-    .toast.show{
-      opacity: 1;
-      transform: translateX(-50%) translateY(-2px);
-    }
-
-    /* 모달 공통 */
-    .modal-backdrop{
-      position:absolute; inset:0; z-index:50;
-      display:none; align-items:flex-end; justify-content:center;
-      padding: 16px;
-      background: rgba(0,0,0,0.52);
-    }
-    .modal-backdrop.open{ display:flex; }
-
-    .modal{
-      width:100%;
-      max-width:520px;
-      border-radius: 22px;
-      overflow:hidden;
-      background: rgba(255,255,255,0.92);
-      border: 1px solid rgba(255,255,255,0.22);
-    }
-    .modalHead{
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 12px 14px;
-      color: rgba(15,23,42,0.92);
-      font-weight:900;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-      font-size: 14px;
-      line-height:1;
-    }
-    .modalHead button{
-      border:none; background:transparent; cursor:pointer;
-      font-weight:900; font-size: 13px;
-      color: rgba(15,23,42,0.65);
-    }
-    .modalBody{
-      padding: 10px 0;
-      max-height: 62vh;
-      overflow:auto;
-    }
-    .item{
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-      cursor:pointer;
-      color: rgba(15,23,42,0.92);
-      font-weight:900;
-      font-size: 14px;
-      background: rgba(255,255,255,0.25);
-    }
-    .item:last-child{ border-bottom:none; }
-    .item:active{ background: rgba(56,163,255,0.10); }
-    .badge{
-      font-size: 11px;
-      font-weight:900;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(56,163,255,0.14);
-      border: 1px solid rgba(56,163,255,0.25);
-      white-space:nowrap;
-      color: rgba(15,23,42,0.70);
-      line-height: 1;
-    }
-
-    .bizText{
-      padding: 14px 16px;
-      font-size: 12px;
-      line-height: 1.45;
-      color: rgba(15,23,42,0.82);
-      white-space: pre-line;
-    }
-  </style>
+  /* 데스크탑은 조금 더 여유 */
+  @media (min-width:720px){
+    h1{ font-size:20px; }
+    .controls{ grid-template-columns: 1fr 1fr 1fr auto; align-items:end; }
+    .controls .field:nth-child(1){ grid-column: 1 / 3; }
+    .controls .field:nth-child(2){ grid-column: 3 / 4; }
+    .controls .field:nth-child(3){ grid-column: 4 / 5; }
+    .controls .applyWrap{ grid-column: 1 / 5; }
+    .btn{ width: 220px; }
+    .row2{ grid-template-columns:1fr 1fr; }
+    .cards{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+  }
+</style>
 </head>
 
 <body>
+<div class="page">
   <div class="wrap">
-    <div class="canvas" id="canvas">
+    <h1>한빔한복 지점별 광고유입 리포트</h1>
 
-      <div class="bg" aria-hidden="true">
-        <img class="active" src="assets/bg1.webp" alt="">
-        <img src="assets/bg2.webp" alt="">
-        <img src="assets/bg3.webp" alt="">
-        <img src="assets/bg4.webp" alt="">
-      </div>
-      <div class="overlay" aria-hidden="true"></div>
+    <div class="panel">
+      <div class="controls">
+        <div class="field">
+          <div class="label">지점 선택</div>
+          <select id="branch">
+            <option value="ALL">전체 지점(합산)</option>
+          </select>
+        </div>
 
-      <div class="dots" id="dots" aria-hidden="true"></div>
-
-      <div class="branch glass" id="openBranch" role="button" tabindex="0">
-        <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
-        <!-- ✅ caret 복구 -->
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-
-      <div class="action-panel glass">
-        <div class="btnRow">
-          <div class="btnCol">
-            <a class="actionPng" id="btnCall" href="#"
-              style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
-            <div class="btnLabel">전화문의</div>
+        <div class="row2">
+          <div class="field">
+            <div class="label">시작일</div>
+            <input id="start" type="date">
           </div>
-
-          <div class="btnCol">
-            <a class="actionPng" id="btnKakao" href="#"
-              style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
-            <div class="btnLabel">카톡문의</div>
-          </div>
-
-          <div class="btnCol">
-            <a class="actionPng" id="btnReserve" href="#"
-              style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
-            <div class="btnLabel">네이버예약</div>
-          </div>
-
-          <div class="btnCol">
-            <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr"
-              style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
-            <div class="btnLabel">더 알아보기</div>
+          <div class="field">
+            <div class="label">종료일</div>
+            <input id="end" type="date">
           </div>
         </div>
-      </div>
 
-      <div class="infoBar" id="openBiz" role="button" tabindex="0">
-        광고운영사 정보 보기
-      </div>
-
-      <div class="toast" id="toast">준비중입니다.</div>
-
-      <!-- 지점 선택 모달 -->
-      <div class="modal-backdrop" id="branchBackdrop" aria-hidden="true">
-        <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
-          <div class="modalHead">
-            <div>지점 선택</div>
-            <button id="closeBranch" type="button">닫기</button>
-          </div>
-          <div class="modalBody" id="branchList"></div>
+        <div class="applyWrap">
+          <button class="btn" id="apply">조회하기</button>
+          <div class="help">* 기본은 “전체 지점 합산”입니다. 기간을 지정하면 해당 기간만 집계됩니다.</div>
         </div>
       </div>
-
-      <!-- 사업자정보 모달 -->
-      <div class="modal-backdrop" id="bizBackdrop" aria-hidden="true">
-        <div class="modal" role="dialog" aria-modal="true" aria-label="광고운영사 정보">
-          <div class="modalHead">
-            <div>광고운영사 정보</div>
-            <button id="closeBiz" type="button">닫기</button>
-          </div>
-          <div class="modalBody">
-            <div class="bizText">
-|  광고운영사 정보  |
-운영사 : ㈜브이커뮤니케이션    |    대표자 : 김정태    |    사업자등록번호 : 744-87-02865
-주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)
-고객센터 : 051-711-3722    |    이메일 : contact@v-comm.co.kr    |    제휴사 : 한빔한복 전지점
-
-본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.
-한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
+
+    <div class="main">
+      <div class="status" id="status">불러오는 중…</div>
+
+      <!-- ✅ 내부 스크롤 영역(필요할 때만) -->
+      <div class="scrollArea">
+
+        <div class="panel">
+          <div class="chartHead">
+            <div class="tabs">
+              <button class="tab on" id="tabDaily" type="button">날짜별</button>
+              <button class="tab" id="tabMonthly" type="button">월별</button>
+            </div>
+
+            <select id="metric" class="metric" aria-label="지표 선택">
+              <option value="visits">방문(visit)</option>
+              <option value="call">전화 클릭</option>
+              <option value="reserve">예약 클릭</option>
+              <option value="more">더 알아보기 클릭</option>
+              <option value="kakao_pending">카톡 클릭(준비중)</option>
+            </select>
+          </div>
+
+          <div class="svgBox" id="chartBox"></div>
+
+          <div class="legend">
+            <span><span class="dot"></span>선택 지표</span>
+            <span><span class="dot gray"></span>방문(참고)</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="cardsWrap">
+            <div class="cards" id="cards"></div>
+            <button class="moreBtn" id="toggleMore" type="button">카드 더보기</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
+</div>
 
-  <script>
-    /* ✅ GAS WebApp URL (사용자 제공) */
-    const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
+<script>
+/*** ✅ 너 GAS URL 그대로 ***/
+const API = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
 
-    /* ✅ 배경 전환 속도 5.5초 */
-    const SLIDE_INTERVAL_MS = 5500;
+/*** ✅ 여기만 너가 GAS Script Properties의 REPORT_TOKEN과 동일하게 넣어줘 ***/
+const REPORT_TOKEN = "여기에_REPORT_TOKEN_입력";
 
-    const BRANCHES = [
-      { name:"부산점",     phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812" },
-      { name:"부산센텀점", phone:"010-3052-2325", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
-      { name:"김해점",     phone:"010.8065.2325", reserve:"https://booking.naver.com/booking/6/bizes/1402679" },
-      { name:"창원점",     phone:"055.263.2325", reserve:"https://booking.naver.com/booking/6/bizes/843111" },
-      { name:"양산점",     phone:"055.912.0425", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
-      { name:"진주점",     phone:"010.5654.2407", reserve:"https://m.booking.naver.com/booking/6/bizes/1485854" },
-      { name:"인천점",     phone:"032.283.2325", reserve:"https://m.booking.naver.com/booking/13/bizes/1039475" },
-      { name:"안산점",     phone:"010.6591.2322", reserve:"https://m.booking.naver.com/booking/6/bizes/1500008" },
-      { name:"마산점",     phone:"010.8832.2325", reserve:"https://booking.naver.com/booking/6/bizes/1526541" },
-      { name:"울산점",     phone:"010.9807.2325", reserve:"https://booking.naver.com/booking/6/bizes/1534767" },
-      { name:"대구점",     phone:"010-8492-2328", reserve:"https://m.place.naver.com/place/2043617700/ticket?entry=pll&bk_query=%ED%95%9C%EB%B9%94%ED%95%9C%EB%B3%B5" }
-    ];
+const elBranch = document.getElementById('branch');
+const elStart  = document.getElementById('start');
+const elEnd    = document.getElementById('end');
+const elApply  = document.getElementById('apply');
+const elStatus = document.getElementById('status');
 
-    function getDeviceType(){
-      return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ? "mobile" : "pc";
-    }
-    function getSessionId(){
-      const k="HB_LANDING_SID";
-      let v=localStorage.getItem(k);
-      if(!v){
-        v=(crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+"_"+Math.random().toString(16).slice(2));
-        localStorage.setItem(k,v);
-      }
-      return v;
-    }
-    function toTelHref(phone){
-      const digits = String(phone || "").replace(/[^\d]/g,"");
-      return digits ? ("tel:" + digits) : "";
-    }
+const elChartBox = document.getElementById('chartBox');
+const elCards = document.getElementById('cards');
 
-    /* ✅ Safari/인앱 안정 로깅(기다리지 않음) */
-    function logEventNoWait(type, data = {}){
-      const payload = {
-        type,
-        sessionId: getSessionId(),
-        device: getDeviceType(),
-        branch: state.branch?.name || "",
-        action: data.action || "",
-        href: data.href || "",
-        page: location.pathname || "/",
-        referrer: document.referrer || "",
-        ua: navigator.userAgent || "",
-        ts: Date.now()
-      };
+const tabDaily = document.getElementById('tabDaily');
+const tabMonthly = document.getElementById('tabMonthly');
+const elMetric = document.getElementById('metric');
 
-      try{
-        const blob = new Blob([JSON.stringify(payload)], {type:"text/plain;charset=utf-8"});
-        if(navigator.sendBeacon){
-          navigator.sendBeacon(LOG_ENDPOINT, blob);
-          return;
-        }
-      }catch(e){}
+const toggleMore = document.getElementById('toggleMore');
 
-      try{
-        fetch(LOG_ENDPOINT, {
-          method:"POST",
-          headers:{ "Content-Type":"text/plain;charset=utf-8" },
-          body: JSON.stringify(payload),
-          keepalive:true
-        });
-      }catch(e){}
-    }
+let lastData = null;
+let viewMode = 'daily'; // daily | monthly
+let showAllCards = false;
 
-    /* Toast */
-    const toastEl = document.getElementById("toast");
-    let toastTimer=null;
-    function showToast(msg){
-      toastEl.textContent = msg || "준비중입니다.";
-      toastEl.classList.add("show");
-      clearTimeout(toastTimer);
-      toastTimer=setTimeout(()=>toastEl.classList.remove("show"), 1400);
-    }
+function yyyyMmDd(d){
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function setDefaultRange(){
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 13); // 최근 14일
+  elEnd.value = yyyyMmDd(end);
+  elStart.value = yyyyMmDd(start);
+}
+function qs(params){
+  return Object.entries(params)
+    .map(([k,v])=>`${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&');
+}
 
-    /* 모달/상태 */
-    const state = { branch:null };
+async function fetchReport(){
+  const branch = elBranch.value || 'ALL';
+  const start = elStart.value;
+  const end = elEnd.value;
 
-    const branchBackdrop = document.getElementById("branchBackdrop");
-    const openBranch = document.getElementById("openBranch");
-    const closeBranch = document.getElementById("closeBranch");
-    const branchList = document.getElementById("branchList");
-    const branchText = document.getElementById("branchText");
+  elStatus.textContent = '불러오는 중…';
 
-    function openBranchModal(){
-      branchBackdrop.classList.add("open");
-      branchBackdrop.setAttribute("aria-hidden","false");
-    }
-    function closeBranchModal(){
-      branchBackdrop.classList.remove("open");
-      branchBackdrop.setAttribute("aria-hidden","true");
-    }
+  const url = `${API}?` + qs({
+    mode:'report',
+    token: REPORT_TOKEN,
+    branch,
+    start,
+    end
+  });
 
-    function renderBranchList(){
-      branchList.innerHTML = "";
-      BRANCHES.forEach(b=>{
-        const el=document.createElement("div");
-        el.className="item";
-        el.innerHTML = `<div>${b.name}</div><div class="badge">선택</div>`;
-        el.addEventListener("click", ()=>selectBranch(b));
-        branchList.appendChild(el);
-      });
-    }
-    function selectBranch(b){
-      state.branch=b;
-      branchText.textContent = `${b.name} 선택됨 | 다시 선택하려면 눌러주세요`;
-      logEventNoWait("branch_select", { action:"branch_select", href:"" });
-      closeBranchModal();
-    }
+  const res = await fetch(url, { method:'GET' });
+  const json = await res.json();
 
-    renderBranchList();
-    openBranch.addEventListener("click", openBranchModal);
-    openBranch.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" ") openBranchModal(); });
-    closeBranch.addEventListener("click", closeBranchModal);
-    branchBackdrop.addEventListener("click", (e)=>{ if(e.target===branchBackdrop) closeBranchModal(); });
+  if (!json.ok){
+    elStatus.textContent = `오류: ${json.error || 'unknown'} (토큰/권한 확인)`;
+    return;
+  }
 
-    /* 사업자 정보 모달 */
-    const bizBackdrop = document.getElementById("bizBackdrop");
-    const openBiz = document.getElementById("openBiz");
-    const closeBiz = document.getElementById("closeBiz");
+  lastData = json;
+  elStatus.textContent = `${json.start} ~ ${json.end} / ${json.branch === 'ALL' ? '전체 지점(합산)' : json.branch}`;
 
-    function openBizModal(){
-      bizBackdrop.classList.add("open");
-      bizBackdrop.setAttribute("aria-hidden","false");
-      logEventNoWait("click", { action:"biz_open", href:"" });
-    }
-    function closeBizModal(){
-      bizBackdrop.classList.remove("open");
-      bizBackdrop.setAttribute("aria-hidden","true");
-    }
-    openBiz.addEventListener("click", openBizModal);
-    openBiz.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" ") openBizModal(); });
-    closeBiz.addEventListener("click", closeBizModal);
-    bizBackdrop.addEventListener("click", (e)=>{ if(e.target===bizBackdrop) closeBizModal(); });
-
-    /* 버튼 */
-    const btnCall=document.getElementById("btnCall");
-    const btnKakao=document.getElementById("btnKakao");
-    const btnReserve=document.getElementById("btnReserve");
-    const btnMore=document.getElementById("btnMore");
-
-    function requireBranchOrOpenModal(e){
-      if(!state.branch){
-        e.preventDefault();
-        openBranchModal();
-        return true;
-      }
-      return false;
-    }
-
-    btnCall.addEventListener("click",(e)=>{
-      e.preventDefault();
-      if(requireBranchOrOpenModal(e)) return;
-      const telHref = toTelHref(state.branch.phone);
-      if(!telHref) return;
-      logEventNoWait("click",{ action:"call", href:telHref });
-      window.location.href = telHref;
+  // 지점 리스트 최초 1회 세팅
+  if (elBranch.options.length <= 1 && Array.isArray(json.branches)){
+    json.branches.forEach(b=>{
+      const opt = document.createElement('option');
+      opt.value = b;
+      opt.textContent = b;
+      elBranch.appendChild(opt);
     });
+  }
 
-    btnKakao.addEventListener("click",(e)=>{
-      e.preventDefault();
-      showToast("준비중입니다.");
-      logEventNoWait("click",{ action:"kakao_pending", href:"" });
-    });
+  render();
+}
 
-    btnReserve.addEventListener("click",(e)=>{
-      e.preventDefault();
-      if(requireBranchOrOpenModal(e)) return;
-      const href = state.branch.reserve || "";
-      logEventNoWait("click",{ action:"reserve", href });
-      if(href) window.location.href = href;
-    });
+function svgSingleSeries({labels, series, refSeries=null, height=170}){
+  const w = 620;
+  const h = height;
+  const padL = 34, padR = 10, padT = 12, padB = 26;
 
-    btnMore.addEventListener("click",()=>{
-      logEventNoWait("click",{ action:"more", href:btnMore.href });
-    });
+  const maxVal = Math.max(1, ...(series||[]), ...(refSeries||[]));
+  const n = labels.length || 1;
+  const xStep = (w - padL - padR) / Math.max(1, n-1);
 
-    /* 방문 1회 */
-    (function(){
-      const key="HB_VISIT_"+getSessionId();
-      if(!sessionStorage.getItem(key)){
-        sessionStorage.setItem(key,"1");
-        logEventNoWait("visit",{ action:"visit", href:"" });
-      }
-    })();
+  const x = i => padL + xStep*i;
+  const y = v => padT + (h - padT - padB) * (1 - (v / maxVal));
 
-    /* 슬라이드 + 도트 + 스와이프 */
-    const canvas=document.getElementById("canvas");
-    const slides=Array.from(document.querySelectorAll(".bg img"));
-    const dotsWrap=document.getElementById("dots");
-    let idx=0, timer=null, pausedUntil=0;
+  const path = (arr) => arr.map((v,i)=> `${i===0?'M':'L'} ${x(i).toFixed(2)} ${y(v).toFixed(2)}`).join(' ');
 
-    function buildDots(){
-      dotsWrap.innerHTML="";
-      slides.forEach((_,i)=>{
-        const d=document.createElement("div");
-        d.className="dot"+(i===idx?" on":"");
-        dotsWrap.appendChild(d);
-      });
-    }
-    function setDots(){
-      const ds=dotsWrap.querySelectorAll(".dot");
-      ds.forEach((d,i)=>d.classList.toggle("on", i===idx));
-    }
-    function showSlide(n){
-      slides[idx].classList.remove("active");
-      idx=(n+slides.length)%slides.length;
-      slides[idx].classList.add("active");
-      setDots();
-    }
-    function next(){ showSlide(idx+1); }
-    function prev(){ showSlide(idx-1); }
+  const gridY = [0.25,0.5,0.75].map(t => (padT + (h-padT-padB)*t));
+  const labelIdx = n <= 6 ? [...Array(n).keys()] : [0, Math.floor((n-1)/3), Math.floor((n-1)*2/3), n-1];
 
-    function startAuto(){
-      stopAuto();
-      timer=setInterval(()=>{
-        if(Date.now()<pausedUntil) return;
-        next();
-      }, SLIDE_INTERVAL_MS);
-    }
-    function stopAuto(){ if(timer){ clearInterval(timer); timer=null; } }
-    function pauseAuto(ms){ pausedUntil=Date.now()+ms; }
+  return `
+  <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" aria-hidden="true">
+    ${gridY.map(gy=>`<line x1="${padL}" y1="${gy}" x2="${w-padR}" y2="${gy}" stroke="#e2e8f0" stroke-width="1"/>`).join('')}
+    ${refSeries ? `<path d="${path(refSeries)}" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>` : ``}
+    <path d="${path(series)}" fill="none" stroke="#38a3ff" stroke-width="3" stroke-linecap="round"/>
+    ${labelIdx.map(i=>`
+      <text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="11" fill="#64748b" font-weight="800">
+        ${labels[i] || ''}
+      </text>
+    `).join('')}
+    <text x="${padL}" y="12" text-anchor="start" font-size="11" fill="#94a3b8" font-weight="800">max ${maxVal}</text>
+  </svg>`;
+}
 
-    buildDots();
-    startAuto();
+function render(){
+  if(!lastData) return;
 
-    let x0=null,y0=null,moved=false;
-    canvas.addEventListener("touchstart",(e)=>{
-      if(!e.touches||e.touches.length!==1) return;
-      x0=e.touches[0].clientX;
-      y0=e.touches[0].clientY;
-      moved=false;
-    },{passive:true});
-    canvas.addEventListener("touchmove",(e)=>{
-      if(x0===null) return;
-      const dx=e.touches[0].clientX-x0;
-      const dy=e.touches[0].clientY-y0;
-      if(Math.abs(dx)>18 && Math.abs(dx)>Math.abs(dy)) moved=true;
-    },{passive:true});
-    canvas.addEventListener("touchend",(e)=>{
-      if(x0===null) return;
-      const x1=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientX:x0;
-      const dx=x1-x0;
-      if(moved && Math.abs(dx)>42){
-        if(dx<0) next(); else prev();
-        pauseAuto(8000);
-      }
-      x0=null;y0=null;moved=false;
-    },{passive:true});
-  </script>
+  const src = viewMode === 'daily' ? lastData.daily : lastData.monthly;
+  const labels = src.labels;
+
+  const metricKey = elMetric.value;
+  const series = (src[metricKey] || []).map(n=>Number(n||0));
+  const visitsRef = (src.visits || []).map(n=>Number(n||0)); // 참고선
+
+  elChartBox.innerHTML = svgSingleSeries({
+    labels,
+    series,
+    refSeries: metricKey === 'visits' ? null : visitsRef,
+    height: 175
+  });
+
+  renderCards(lastData.totals);
+}
+
+function renderCards(t){
+  const cardsAll = [
+    {title:'총 방문', value: t.visits},
+    {title:'전화 클릭', value: t.call},
+    {title:'예약 클릭', value: t.reserve},
+    {title:'더 알아보기 클릭', value: t.more},
+    {title:'카톡 클릭(준비중)', value: t.kakao_pending},
+    {title:'클릭 합계', value: t.clicks},
+    {title:'모바일', value: t.mobile},
+    {title:'PC', value: t.pc},
+  ];
+
+  const list = showAllCards ? cardsAll : cardsAll.slice(0,4);
+  elCards.innerHTML = list.map(c=>`
+    <div class="card">
+      <div class="t">${c.title}</div>
+      <div class="v">${Number(c.value||0).toLocaleString()}</div>
+    </div>
+  `).join('');
+
+  toggleMore.textContent = showAllCards ? '카드 접기' : '카드 더보기';
+}
+
+tabDaily.addEventListener('click', ()=>{
+  viewMode='daily';
+  tabDaily.classList.add('on');
+  tabMonthly.classList.remove('on');
+  render();
+});
+tabMonthly.addEventListener('click', ()=>{
+  viewMode='monthly';
+  tabMonthly.classList.add('on');
+  tabDaily.classList.remove('on');
+  render();
+});
+elMetric.addEventListener('change', render);
+
+toggleMore.addEventListener('click', ()=>{
+  showAllCards = !showAllCards;
+  renderCards(lastData?.totals || {});
+});
+
+elApply.addEventListener('click', fetchReport);
+
+setDefaultRange();
+fetchReport();
+</script>
 </body>
 </html>

@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <!-- ✅ 카카오 인앱에서 확대/리플로우 방지 목적(원치 않으면 user-scalable 부분은 제거 가능) -->
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
   <title>hanbeam.kr</title>
 
   <meta http-equiv="Content-Security-Policy"
@@ -25,53 +26,56 @@
       --H: 844;
       --maxW: 520px;
 
-      --glass-bg: rgba(255,255,255,0.52);
+      /* ✅ 4번: 더 투명하게(값 낮춤) */
+      --glass-bg: rgba(255,255,255,0.38);
       --glass-blur: 10px;
-      --glass-border: rgba(255,255,255,0.28);
+      --glass-border: rgba(255,255,255,0.22);
 
-      --footer-bg: rgba(0,0,0,0.45);
-      --footer-border: rgba(255,255,255,0.12);
+      --footer-bg: rgba(0,0,0,0.38);
+      --footer-border: rgba(255,255,255,0.10);
 
       --text-dark: #2a1b17;
       --text-white: rgba(255,255,255,0.92);
       --text-white-soft: rgba(255,255,255,0.78);
 
-      --gap: 14px; /* 버튼 간격 */
+      --gap: 14px;
+      --dot-bg: rgba(0,0,0,0.38);
+      --dot-on: rgba(255,255,255,0.92);
+      --dot-off: rgba(255,255,255,0.32);
     }
 
     *{ box-sizing:border-box; }
     html, body { height: 100%; margin:0; }
+
     body{
       background:#0b0b0b;
       font-family: system-ui, -apple-system, "Nanum Gothic Neo","Apple SD Gothic Neo","Noto Sans KR", sans-serif;
       overflow:hidden;
+
+      /* ✅ 5번: 카카오 인앱에서 폰트 자동 확대(text autosize) 방지 */
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
     .wrap{
-      width:100vw; height:100vh;
-      display:flex; align-items:center; justify-content:center;
-    }
-
-    /* ✅ 2번(잘림 해결):
-       화면 안에 390x844 캔버스를 “전부 보이게” 넣는다.
-       - height 기준으로 맞추되, 너무 크면 width로 줄여서 fit
-    */
-    .screen{
-      position:relative;
-      width: min(100vw, var(--maxW));
-      height: 100vh;
+      width:100vw;
+      height: 100vh;      /* fallback */
+      height: 100dvh;     /* ✅ 1번: 최신 viewport 단위 */
       display:flex;
       align-items:center;
       justify-content:center;
-      overflow:hidden;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* 실제 UI 캔버스: 항상 390:844 비율로 보이게 */
+    /* 캔버스: 화면 안에서 “전부 보이게” */
     .canvas{
       position:relative;
       width: min(100vw, var(--maxW));
       aspect-ratio: calc(var(--W) / var(--H));
-      max-height: 100vh;              /* ✅ 위아래 잘림 방지 */
+
+      /* ✅ 1번: 상단 잘림 방지 핵심 */
+      max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       border-radius: 22px;
       overflow:hidden;
       background:#000;
@@ -85,25 +89,15 @@
       width:100%; height:100%;
       object-fit:cover;
       opacity:0;
-      transition: opacity .6s ease;
+      transition: opacity .55s ease;
 
-      /* ✅ 6번: 선명도 보정(가벼운 sharpen 느낌) */
+      /* 선명도 보정 */
       filter: contrast(1.06) saturate(1.06);
-      transform: translateZ(0); /* 렌더링 안정 */
+      transform: translateZ(0);
       image-rendering: auto;
+      will-change: opacity;
     }
     .bg img.active{ opacity:1; }
-
-    /* 선명도 추가 강화(과하면 줄여도 됨) */
-    .bg::after{
-      content:"";
-      position:absolute; inset:0;
-      pointer-events:none;
-      /* 미세한 선명도 느낌(너무 강하면 opacity 낮추기) */
-      background: radial-gradient(circle at 50% 45%, rgba(255,255,255,0.06), rgba(255,255,255,0.00) 55%);
-      mix-blend-mode: overlay;
-      opacity: .55;
-    }
 
     .overlay{
       position:absolute; inset:0; z-index:1;
@@ -119,9 +113,9 @@
       -webkit-backdrop-filter: blur(var(--glass-blur));
       border: 1px solid var(--glass-border);
       box-shadow:
-        0 10px 24px rgba(0,0,0,0.16),
-        0 2px 6px rgba(0,0,0,0.10),
-        inset 0 1px 0 rgba(255,255,255,0.55);
+        0 10px 24px rgba(0,0,0,0.12),
+        0 2px 6px rgba(0,0,0,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.50);
     }
 
     .abs{ position:absolute; z-index:2; }
@@ -138,7 +132,7 @@
 
       display:flex;
       align-items:center;
-      justify-content:center;  /* ✅ 4번 */
+      justify-content:center;
       padding: 0 12px;
       cursor:pointer;
       user-select:none;
@@ -154,7 +148,8 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      text-align:center;       /* ✅ */
+      text-align:center;
+      line-height: 1; /* ✅ 5번: 라인 안정 */
     }
 
     .branch svg{
@@ -164,7 +159,7 @@
     }
     .branch svg path{ stroke: var(--text-dark); }
 
-    /* 액션 패널: 357 x 97 @ (16.5, 583) */
+    /* 액션 패널 */
     .action-panel{
       left:  calc(16.5 / 390 * 100%);
       top:   calc(583 / 844 * 100%);
@@ -177,10 +172,7 @@
       justify-content:center;
     }
 
-    /* ✅ 3번: “양 끝 여백 = 버튼 간격” 만들기
-       - 4개 버튼이면 간격 5개(좌여백 1 + 버튼사이 3 + 우여백 1)
-       - 여백도 gap과 동일하게 주면 됨
-    */
+    /* 버튼 배치: 양끝여백=간격 */
     .btnRow{
       width: 100%;
       display:flex;
@@ -192,7 +184,7 @@
     }
 
     .btnCol{
-      width: 64px;                 /* 버튼 폭과 동일 */
+      width: 64px;
       display:flex;
       flex-direction:column;
       align-items:center;
@@ -215,22 +207,21 @@
     }
     .actionPng:active{ transform: translateY(1px); }
 
-    /* ✅ 버튼 밑 라벨 */
     .btnLabel{
       font-size: 11px;
       font-weight: 900;
       color: rgba(42,27,23,0.82);
       letter-spacing: -0.02em;
       text-align:center;
-      line-height: 1.1;
+      line-height: 1; /* ✅ 5번 */
       user-select:none;
       white-space:nowrap;
     }
 
-    /* 푸터: 357 x 114 @ (16.5, 690) */
+    /* ✅ 2번: 푸터 조금 더 아래로 (690 → 704) */
     .footer{
       left:  calc(16.5 / 390 * 100%);
-      top:   calc(690 / 844 * 100%);
+      top:   calc(704 / 844 * 100%);
       width: calc(357 / 390 * 100%);
       height:calc(114 / 844 * 100%);
       border-radius: 18px;
@@ -245,10 +236,11 @@
       font-size: clamp(11px, 1.7vw, 12px);
       color: var(--text-white);
       margin-bottom: 6px;
+      line-height: 1.1;
     }
     .footer .meta{
       font-size: clamp(9px, 1.45vw, 10px);
-      line-height: 1.28;
+      line-height: 1.25;
       letter-spacing: -0.01em;
     }
     .footer hr{
@@ -259,11 +251,36 @@
     }
     .footer .note{
       font-size: clamp(9px, 1.45vw, 10px);
-      line-height: 1.3;
+      line-height: 1.28;
       color: rgba(255,255,255,0.86);
     }
 
-    /* ===== Modal(검색 input 삭제) ===== */
+    /* ✅ 3번: dot indicator (이미지 개수/현재) */
+    .dots{
+      position:absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: calc(670 / 844 * 100%); /* 액션 패널 위/푸터 위 정도 */
+      z-index: 3;
+      display:flex;
+      align-items:center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--dot-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    .dot{
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--dot-off);
+    }
+    .dot.on{ background: var(--dot-on); }
+
+    /* Modal(검색 input 없음) */
     .modal-backdrop{
       position:absolute; inset:0; z-index:50;
       display:none; align-items:flex-end; justify-content:center;
@@ -277,7 +294,7 @@
       border-radius: 22px;
       overflow:hidden;
       max-width: 520px;
-      background: rgba(255,255,255,0.78);
+      background: rgba(255,255,255,0.80);
       border: 1px solid rgba(255,255,255,0.25);
     }
 
@@ -299,8 +316,6 @@
       max-height: 55vh;
       overflow:auto;
     }
-
-    /* ✅ 5번: 단순 리스트만 */
     .item{
       display:flex; align-items:center; justify-content:space-between;
       padding: 14px 16px;
@@ -313,7 +328,6 @@
     }
     .item:last-child{ border-bottom:none; }
     .item:active{ background: rgba(56,163,255,0.12); }
-
     .badge{
       font-size: 11px;
       font-weight:900;
@@ -325,7 +339,7 @@
       color: rgba(15,23,42,0.75);
     }
 
-    /* ===== Toast ===== */
+    /* Toast */
     .toast{
       position:absolute;
       left: 50%;
@@ -356,98 +370,97 @@
 
 <body>
   <div class="wrap">
-    <div class="screen">
-      <div class="canvas" id="canvas">
+    <div class="canvas" id="canvas">
 
-        <!-- 배경 -->
-        <div class="bg" aria-hidden="true">
-          <img class="active" src="assets/bg1.webp" alt="">
-          <img src="assets/bg2.webp" alt="">
-          <img src="assets/bg3.webp" alt="">
-          <img src="assets/bg4.webp" alt="">
-          <!-- <img src="assets/bg5.webp" alt=""> -->
-        </div>
-        <div class="overlay"></div>
-
-        <!-- 지점 선택 -->
-        <div class="abs branch glass" id="openBranch" role="button" tabindex="0">
-          <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-
-        <!-- 액션 버튼 패널 -->
-        <div class="abs action-panel glass">
-          <div class="btnRow">
-            <div class="btnCol">
-              <a class="actionPng" id="btnCall" href="#"
-                 style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
-              <div class="btnLabel">전화문의</div>
-            </div>
-
-            <div class="btnCol">
-              <a class="actionPng" id="btnKakao" href="javascript:void(0)"
-                 style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
-              <div class="btnLabel">카톡문의</div>
-            </div>
-
-            <div class="btnCol">
-              <a class="actionPng" id="btnReserve" href="#"
-                 style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
-              <div class="btnLabel">네이버예약</div>
-            </div>
-
-            <div class="btnCol">
-              <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr"
-                 style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
-              <div class="btnLabel">더 알아보기</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 푸터 -->
-        <div class="abs footer" aria-label="광고운영사 정보">
-          <div class="title">|&nbsp;&nbsp;광고운영사 정보&nbsp;&nbsp;|</div>
-          <div class="meta">
-            운영사 : ㈜브이커뮤니케이션 &nbsp;&nbsp;|&nbsp;&nbsp; 대표자 : 김정태 &nbsp;&nbsp;|&nbsp;&nbsp; 사업자등록번호 : 744-87-02865<br>
-            주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)<br>
-            고객센터 : 051-711-3722 &nbsp;&nbsp;|&nbsp;&nbsp; 이메일 : contact@v-comm.co.kr &nbsp;&nbsp;|&nbsp;&nbsp; 제휴사 : 한빔한복 전지점
-          </div>
-          <hr>
-          <div class="note">
-            본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.<br>
-            한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
-          </div>
-        </div>
-
-        <!-- 토스트 -->
-        <div class="toast" id="toast">준비중입니다.</div>
-
-        <!-- ✅ 지점 선택 모달 (검색 input 없음) -->
-        <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
-          <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
-            <div class="modalHead">
-              <div>지점 선택</div>
-              <button id="closeModal" type="button">닫기</button>
-            </div>
-            <div class="modalBody" id="branchList"></div>
-          </div>
-        </div>
-
+      <div class="bg" aria-hidden="true" id="bg">
+        <img class="active" src="assets/bg1.webp" alt="">
+        <img src="assets/bg2.webp" alt="">
+        <img src="assets/bg3.webp" alt="">
+        <img src="assets/bg4.webp" alt="">
+        <!-- <img src="assets/bg5.webp" alt=""> -->
       </div>
+      <div class="overlay"></div>
+
+      <!-- dot indicator -->
+      <div class="dots" id="dots" aria-hidden="true"></div>
+
+      <!-- 지점 선택 -->
+      <div class="abs branch glass" id="openBranch" role="button" tabindex="0">
+        <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 액션 버튼 패널 -->
+      <div class="abs action-panel glass">
+        <div class="btnRow">
+          <div class="btnCol">
+            <a class="actionPng" id="btnCall" href="#"
+               style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
+            <div class="btnLabel">전화문의</div>
+          </div>
+
+          <div class="btnCol">
+            <a class="actionPng" id="btnKakao" href="javascript:void(0)"
+               style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
+            <div class="btnLabel">카톡문의</div>
+          </div>
+
+          <div class="btnCol">
+            <a class="actionPng" id="btnReserve" href="#"
+               style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
+            <div class="btnLabel">네이버예약</div>
+          </div>
+
+          <div class="btnCol">
+            <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr"
+               style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
+            <div class="btnLabel">더 알아보기</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 푸터 -->
+      <div class="abs footer" aria-label="광고운영사 정보">
+        <div class="title">|&nbsp;&nbsp;광고운영사 정보&nbsp;&nbsp;|</div>
+        <div class="meta">
+          운영사 : ㈜브이커뮤니케이션 &nbsp;&nbsp;|&nbsp;&nbsp; 대표자 : 김정태 &nbsp;&nbsp;|&nbsp;&nbsp; 사업자등록번호 : 744-87-02865<br>
+          주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)<br>
+          고객센터 : 051-711-3722 &nbsp;&nbsp;|&nbsp;&nbsp; 이메일 : contact@v-comm.co.kr &nbsp;&nbsp;|&nbsp;&nbsp; 제휴사 : 한빔한복 전지점
+        </div>
+        <hr>
+        <div class="note">
+          본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.<br>
+          한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
+        </div>
+      </div>
+
+      <!-- 토스트 -->
+      <div class="toast" id="toast">준비중입니다.</div>
+
+      <!-- 지점 선택 모달(검색 없음) -->
+      <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
+          <div class="modalHead">
+            <div>지점 선택</div>
+            <button id="closeModal" type="button">닫기</button>
+          </div>
+          <div class="modalBody" id="branchList"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <script>
     /************ 반드시 교체 ************/
-    const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
+    const LOG_ENDPOINT = "AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI";
     /************************************/
 
-    /* ✅ 1번: 3초 */
-    const SLIDE_INTERVAL_MS = 3000;
+    /* ✅ 3번: 자동 전환은 더 느리게 (6초) */
+    const SLIDE_INTERVAL_MS = 6000;
 
-    // 지점 데이터(11개)
     const BRANCHES = [
       { name:"부산점",     phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812" },
       { name:"부산센텀점", phone:"010-3052-2325", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
@@ -462,7 +475,6 @@
       { name:"대구점",     phone:"010-8492-2328", reserve:"https://m.place.naver.com/place/2043617700/ticket?entry=pll&bk_query=%ED%95%9C%EB%B9%94%ED%95%9C%EB%B3%B5" }
     ];
 
-    // helpers
     function getDeviceType(){
       const ua = navigator.userAgent || "";
       return (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) ? "mobile" : "pc";
@@ -521,19 +533,7 @@
       }
     }
 
-    // slider
-    (function startSlider(){
-      const slides = document.querySelectorAll(".bg img");
-      if(!slides.length) return;
-      let i = 0;
-      setInterval(()=>{
-        slides[i].classList.remove("active");
-        i = (i+1) % slides.length;
-        slides[i].classList.add("active");
-      }, SLIDE_INTERVAL_MS);
-    })();
-
-    // toast
+    // ===== Toast =====
     const toastEl = document.getElementById("toast");
     let toastTimer = null;
     function showToast(msg){
@@ -543,10 +543,9 @@
       toastTimer = setTimeout(()=>toastEl.classList.remove("show"), 1400);
     }
 
-    // state
+    // ===== Branch modal =====
     const state = { branch: null };
 
-    // modal
     const modalBackdrop = document.getElementById("modalBackdrop");
     const openBranch = document.getElementById("openBranch");
     const closeModal = document.getElementById("closeModal");
@@ -624,7 +623,7 @@
       logEvent("click", { action:"more", href: btnMore.href });
     });
 
-    // visit once per session
+    // Visit once per session
     (function logVisitOnce(){
       const key = "HB_VISIT_" + getSessionId();
       if(!sessionStorage.getItem(key)){
@@ -632,6 +631,91 @@
         logEvent("visit", { extra:{ ts: Date.now() } });
       }
     })();
+
+    // ===== Slider + Dots + Swipe =====
+    const canvas = document.getElementById("canvas");
+    const slides = Array.from(document.querySelectorAll(".bg img"));
+    const dotsWrap = document.getElementById("dots");
+
+    let idx = 0;
+    let timer = null;
+    let pausedUntil = 0;
+
+    function buildDots(){
+      dotsWrap.innerHTML = "";
+      slides.forEach((_, i)=>{
+        const d = document.createElement("div");
+        d.className = "dot" + (i===idx ? " on" : "");
+        dotsWrap.appendChild(d);
+      });
+    }
+    function setDots(){
+      const ds = dotsWrap.querySelectorAll(".dot");
+      ds.forEach((d,i)=> d.classList.toggle("on", i===idx));
+    }
+
+    function showSlide(n){
+      slides[idx].classList.remove("active");
+      idx = (n + slides.length) % slides.length;
+      slides[idx].classList.add("active");
+      setDots();
+    }
+
+    function next(){ showSlide(idx + 1); }
+    function prev(){ showSlide(idx - 1); }
+
+    function startAuto(){
+      stopAuto();
+      timer = setInterval(()=>{
+        if(Date.now() < pausedUntil) return;
+        next();
+      }, SLIDE_INTERVAL_MS);
+    }
+    function stopAuto(){
+      if(timer){ clearInterval(timer); timer = null; }
+    }
+    function pauseAuto(ms){
+      pausedUntil = Date.now() + ms;
+    }
+
+    buildDots();
+    startAuto();
+
+    // ✅ 스와이프 제스처
+    let touchX0 = null;
+    let touchY0 = null;
+    let moved = false;
+
+    canvas.addEventListener("touchstart", (e)=>{
+      if(!e.touches || e.touches.length !== 1) return;
+      touchX0 = e.touches[0].clientX;
+      touchY0 = e.touches[0].clientY;
+      moved = false;
+    }, { passive:true });
+
+    canvas.addEventListener("touchmove", (e)=>{
+      if(touchX0 === null) return;
+      const dx = e.touches[0].clientX - touchX0;
+      const dy = e.touches[0].clientY - touchY0;
+      if(Math.abs(dx) > 18 && Math.abs(dx) > Math.abs(dy)) moved = true;
+    }, { passive:true });
+
+    canvas.addEventListener("touchend", (e)=>{
+      if(touchX0 === null) return;
+      const x1 = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : touchX0;
+      const dx = x1 - touchX0;
+
+      // 스와이프 임계값
+      if(moved && Math.abs(dx) > 42){
+        if(dx < 0) next();
+        else prev();
+        pauseAuto(8000); // 사용자가 조작하면 8초 쉬었다가 자동 재개
+      }
+
+      touchX0 = null;
+      touchY0 = null;
+      moved = false;
+    }, { passive:true });
 
     // 초기 링크
     btnCall.href = "#";

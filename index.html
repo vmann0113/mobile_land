@@ -1,364 +1,46 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
-  <title>hanbeam.kr</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
+<title>hanbeam.kr</title>
 
-  <meta http-equiv="Content-Security-Policy"
-        content="
-          default-src 'self';
-          img-src 'self' data:;
-          style-src 'self' 'unsafe-inline';
-          script-src 'self' 'unsafe-inline';
-          connect-src 'self' https://script.google.com https://script.googleusercontent.com;
-          base-uri 'none';
-          object-src 'none';
-          frame-ancestors 'none';
-        " />
+<style>
+:root{
+  --W:390;
+  --H:844;
+}
 
-  <link rel="preload" as="image" href="assets/bg1.webp" />
+/* 배경 영역 수정 */
+.bg{
+  position:absolute;
+  left:0; right:0;
+  /* 🔥 50px만 잘리게 수정 */
+  top: calc(-50 / 844 * 100%);
+  height: calc(100% + (50 / 844 * 100%));
+  z-index:0;
+  overflow:hidden;
+}
 
-  <style>
-    :root{
-      --W: 390;
-      --H: 844;
-      --maxW: 520px;
+.bg img{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit: cover;
+  object-position: top center;
+  opacity:0;
+  transition: opacity .55s ease;
+  filter: contrast(1.10) saturate(1.08);
+}
 
-      --glass-bg: rgba(255,255,255,0.34);
-      --glass-blur: 10px;
-      --glass-border: rgba(255,255,255,0.18);
-
-      --footer-bg: rgba(0,0,0,0.34);
-      --footer-border: rgba(255,255,255,0.10);
-
-      --text-dark: #2a1b17;
-      --text-white: rgba(255,255,255,0.92);
-      --text-white-soft: rgba(255,255,255,0.78);
-
-      --gap: 14px;
-    }
-
-    *{ box-sizing:border-box; }
-    html, body { height:100%; margin:0; }
-
-    html{
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-    body{
-      background:#0b0b0b;
-      font-family: system-ui, -apple-system, "Nanum Gothic Neo","Apple SD Gothic Neo","Noto Sans KR", sans-serif;
-      overflow:hidden;
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-      line-height: 1.2;
-      font-size: 16px;
-    }
-
-    .wrap{
-      width:100vw;
-      height: 100vh;
-      height: 100dvh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    .canvas{
-      position:relative;
-      width: min(100vw, var(--maxW));
-      aspect-ratio: calc(var(--W) / var(--H));
-      max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      border-radius: 22px;
-      overflow:hidden;
-      background:#000;
-      box-shadow: 0 20px 80px rgba(0,0,0,0.45);
-    }
-
-    /* 배경: 위 100px 크롭 효과 */
-    .bg{
-      position:absolute;
-      left:0; right:0;
-      top: calc(-100 / 844 * 100%);
-      height: calc(100% + (100 / 844 * 100%));
-      z-index:0;
-      overflow:hidden;
-    }
-    .bg img{
-      position:absolute; inset:0;
-      width:100%; height:100%;
-      object-fit: cover;
-      object-position: top center;
-      opacity:0;
-      transition: opacity .55s ease;
-      filter: contrast(1.06) saturate(1.06);
-      transform: translateZ(0);
-      will-change: opacity;
-    }
-    .bg img.active{ opacity:1; }
-
-    .overlay{
-      position:absolute; inset:0; z-index:1;
-      pointer-events:none;
-      background: linear-gradient(to bottom,
-        rgba(0,0,0,0.00) 45%,
-        rgba(0,0,0,0.55) 100%);
-    }
-
-    .glass{
-      background: var(--glass-bg);
-      backdrop-filter: blur(var(--glass-blur));
-      -webkit-backdrop-filter: blur(var(--glass-blur));
-      border: 1px solid var(--glass-border);
-      box-shadow:
-        0 10px 24px rgba(0,0,0,0.10),
-        0 2px 6px rgba(0,0,0,0.06),
-        inset 0 1px 0 rgba(255,255,255,0.45);
-    }
-
-    .abs{ position:absolute; z-index:2; }
-
-    .branch{
-      left:  calc(16.5 / 390 * 100%);
-      top:   calc(538.1 / 844 * 100%);
-      width: calc(357 / 390 * 100%);
-      height:calc(34.5 / 844 * 100%);
-      border-radius: 999px;
-
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding: 0 12px;
-      cursor:pointer;
-      user-select:none;
-      color: var(--text-dark);
-      text-align:center;
-      gap: 8px;
-    }
-    .branch .txt{
-      font-weight:900;
-      font-size: 13px;
-      letter-spacing: -0.01em;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      text-align:center;
-      line-height: 1;
-    }
-    .branch svg{
-      width: 14px; height: 14px;
-      opacity:.85;
-      flex: 0 0 auto;
-    }
-    .branch svg path{ stroke: var(--text-dark); }
-
-    /* 도트 */
-    .dots{
-      position:absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      top: calc(518 / 844 * 100%);
-      z-index: 3;
-      display:flex;
-      align-items:center;
-      gap: 6px;
-      padding: 0;
-      background: transparent;
-      border: none;
-    }
-    .dot{
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.35);
-    }
-    .dot.on{ background: rgba(255,255,255,0.95); }
-
-    /* 액션 패널: 높이 +10px 적용(107) */
-    .action-panel{
-      left:  calc(16.5 / 390 * 100%);
-      top:   calc(583 / 844 * 100%);
-      width: calc(357 / 390 * 100%);
-      height:calc(107 / 844 * 100%);
-      border-radius: 22px;
-      padding: 10px 12px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:center;
-    }
-
-    .btnRow{
-      width: 100%;
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      padding-left: var(--gap);
-      padding-right: var(--gap);
-      gap: var(--gap);
-    }
-    .btnCol{
-      width: 64px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap: 6px;
-      flex: 0 0 auto;
-    }
-    .actionPng{
-      width: 64px;
-      height: 64px;
-      border-radius: 18px;
-      display:block;
-      background-size: cover;
-      background-position: center;
-      background-repeat:no-repeat;
-      text-decoration:none;
-      -webkit-tap-highlight-color: transparent;
-      cursor:pointer;
-      overflow:hidden;
-    }
-    .actionPng:active{ transform: translateY(1px); }
-    .btnLabel{
-      font-size: 11px;
-      font-weight: 900;
-      color: rgba(42,27,23,0.82);
-      letter-spacing: -0.02em;
-      text-align:center;
-      line-height: 1;
-      user-select:none;
-      white-space:nowrap;
-    }
-
-    /* 푸터: 높이 +10px 적용(124) */
-    .footer{
-      left:  calc(16.5 / 390 * 100%);
-      top:   calc(704 / 844 * 100%);
-      width: calc(357 / 390 * 100%);
-      height:calc(124 / 844 * 100%);
-      border-radius: 18px;
-      background: var(--footer-bg);
-      border: 1px solid var(--footer-border);
-      padding: 10px 12px;
-      color: var(--text-white-soft);
-      overflow:hidden;
-    }
-    .footer .title{
-      font-weight:900;
-      font-size: 12px;
-      color: var(--text-white);
-      margin-bottom: 6px;
-      line-height: 1.1;
-    }
-    .footer .meta{
-      font-size: 10px;
-      line-height: 1.25;
-      letter-spacing: -0.01em;
-    }
-    .footer hr{
-      border:0;
-      height:1px;
-      background: rgba(255,255,255,0.18);
-      margin: 8px 0;
-    }
-    .footer .note{
-      font-size: 10px;
-      line-height: 1.28;
-      color: rgba(255,255,255,0.86);
-    }
-
-    /* Modal */
-    .modal-backdrop{
-      position:absolute; inset:0; z-index:50;
-      display:none; align-items:flex-end; justify-content:center;
-      padding: 16px;
-      background: rgba(0,0,0,0.50);
-    }
-    .modal-backdrop.open{ display:flex; }
-    .modal{
-      width:100%;
-      border-radius: 22px;
-      overflow:hidden;
-      max-width: 520px;
-      background: rgba(255,255,255,0.80);
-      border: 1px solid rgba(255,255,255,0.25);
-    }
-    .modalHead{
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 12px 14px;
-      color: var(--text-dark);
-      font-weight:900;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-      font-size: 14px;
-      line-height: 1;
-    }
-    .modalHead button{
-      border:none; background:transparent; cursor:pointer;
-      font-weight:900; font-size: 13px;
-      color: rgba(42,27,23,0.75);
-      line-height: 1;
-    }
-    .modalBody{
-      padding: 10px 0;
-      max-height: 55vh;
-      overflow:auto;
-    }
-    .item{
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-      cursor:pointer;
-      color: var(--text-dark);
-      font-weight:900;
-      font-size: 14px;
-      line-height: 1;
-      background: rgba(255,255,255,0.25);
-    }
-    .item:last-child{ border-bottom:none; }
-    .item:active{ background: rgba(56,163,255,0.12); }
-    .badge{
-      font-size: 11px;
-      font-weight:900;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(56,163,255,0.14);
-      border: 1px solid rgba(56,163,255,0.25);
-      white-space:nowrap;
-      color: rgba(15,23,42,0.75);
-      line-height: 1;
-    }
-
-    /* Toast */
-    .toast{
-      position:absolute;
-      left: 50%;
-      bottom: 18%;
-      transform: translateX(-50%);
-      z-index: 80;
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.72);
-      color: rgba(255,255,255,0.95);
-      font-weight: 900;
-      font-size: 12px;
-      line-height: 1;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .18s ease, transform .18s ease;
-    }
-    .toast.show{
-      opacity: 1;
-      transform: translateX(-50%) translateY(-2px);
-    }
-  </style>
+.bg img.active{ opacity:1; }
+</style>
 </head>
 
 <body>
   <div class="wrap">
     <div class="canvas" id="canvas">
 
+      <!-- 배경 -->
       <div class="bg" aria-hidden="true" id="bg">
         <img class="active" src="assets/bg1.webp" alt="">
         <img src="assets/bg2.webp" alt="">
@@ -367,8 +49,10 @@
       </div>
       <div class="overlay"></div>
 
+      <!-- 도트 -->
       <div class="dots" id="dots" aria-hidden="true"></div>
 
+      <!-- 지점 선택 -->
       <div class="abs branch glass" id="openBranch" role="button" tabindex="0">
         <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -376,6 +60,7 @@
         </svg>
       </div>
 
+      <!-- 액션 -->
       <div class="abs action-panel glass">
         <div class="btnRow">
           <div class="btnCol">
@@ -404,29 +89,43 @@
         </div>
       </div>
 
-      <div class="abs footer" aria-label="광고운영사 정보">
-        <div class="title">|&nbsp;&nbsp;광고운영사 정보&nbsp;&nbsp;|</div>
-        <div class="meta">
-          운영사 : ㈜브이커뮤니케이션 &nbsp;&nbsp;|&nbsp;&nbsp; 대표자 : 김정태 &nbsp;&nbsp;|&nbsp;&nbsp; 사업자등록번호 : 744-87-02865<br>
-          주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)<br>
-          고객센터 : 051-711-3722 &nbsp;&nbsp;|&nbsp;&nbsp; 이메일 : contact@v-comm.co.kr &nbsp;&nbsp;|&nbsp;&nbsp; 제휴사 : 한빔한복 전지점
-        </div>
-        <hr>
-        <div class="note">
-          본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.<br>
-          한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
-        </div>
+      <!-- 사업자정보 보기 바 -->
+      <div class="infoBar" id="openBiz" role="button" tabindex="0">
+        광고운영사 정보 보기
       </div>
 
+      <!-- 토스트 -->
       <div class="toast" id="toast">준비중입니다.</div>
 
-      <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+      <!-- 지점 선택 모달 -->
+      <div class="modal-backdrop" id="branchBackdrop" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
           <div class="modalHead">
             <div>지점 선택</div>
-            <button id="closeModal" type="button">닫기</button>
+            <button id="closeBranch" type="button">닫기</button>
           </div>
           <div class="modalBody" id="branchList"></div>
+        </div>
+      </div>
+
+      <!-- 사업자정보 모달 -->
+      <div class="modal-backdrop" id="bizBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="광고운영사 정보">
+          <div class="modalHead">
+            <div>광고운영사 정보</div>
+            <button id="closeBiz" type="button">닫기</button>
+          </div>
+          <div class="modalBody">
+            <div class="bizText">
+|  광고운영사 정보  |
+운영사 : ㈜브이커뮤니케이션    |    대표자 : 김정태    |    사업자등록번호 : 744-87-02865
+주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)
+고객센터 : 051-711-3722    |    이메일 : contact@v-comm.co.kr    |    제휴사 : 한빔한복 전지점
+
+본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.
+한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
+            </div>
+          </div>
         </div>
       </div>
 
@@ -434,13 +133,16 @@
   </div>
 
   <script>
-    /************ 반드시 교체 ************/
+    /*********************************************************
+     *  🔐 GAS WebApp Endpoint (반드시 교체)
+     *  예: https://script.google.com/macros/s/AKfycb.../exec
+     *********************************************************/
     const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
-    /************************************/
 
-    /* ✅ 배경 전환 속도: 기존 6.0s → 5.5s (0.5초 빠르게) */
+    /* ✅ 배경 전환 속도: 5.5초 */
     const SLIDE_INTERVAL_MS = 5500;
 
+    /* 지점 데이터 */
     const BRANCHES = [
       { name:"부산점",     phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812" },
       { name:"부산센텀점", phone:"010-3052-2325", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
@@ -455,6 +157,7 @@
       { name:"대구점",     phone:"010-8492-2328", reserve:"https://m.place.naver.com/place/2043617700/ticket?entry=pll&bk_query=%ED%95%9C%EB%B9%94%ED%95%9C%EB%B3%B5" }
     ];
 
+    /* ===== 유틸 ===== */
     function getDeviceType(){
       const ua = navigator.userAgent || "";
       return (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) ? "mobile" : "pc";
@@ -478,50 +181,51 @@
         utm_term: p.get("utm_term") || ""
       };
     }
+    function toTelHref(phone){
+      const digits = String(phone || "").replace(/[^\d]/g, "");
+      return digits ? ("tel:" + digits) : "";
+    }
 
-    /* ✅ 보편적 로깅(전화 차단 방지용): sendBeacon 우선 + fetch(비대기) fallback */
+    /* ===== 보안/호환 최적 로깅: sendBeacon 우선, 절대 await 금지 ===== */
     function logEventNoWait(type, data = {}) {
       const utm = getUTM();
       const payload = {
-        type,
+        v: "1",
+        type,                       // visit | click | branch_select
         sessionId: getSessionId(),
         device: getDeviceType(),
-        branch: (state.branch && state.branch.name) ? state.branch.name : "",
-        action: data.action || "",
+        branch: state.branch?.name || "",
+        action: data.action || "",  // call | reserve | more | kakao_pending
         href: data.href || "",
         page: location.pathname || "/",
         referrer: document.referrer || "",
         userAgent: navigator.userAgent || "",
         lang: navigator.language || "",
         screen: `${window.innerWidth}x${window.innerHeight}`,
+        ts: Date.now(),
         extra: data.extra ? JSON.stringify(data.extra) : "",
         ...utm
       };
 
-      try {
+      try{
         const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=utf-8" });
         if (navigator.sendBeacon) {
           navigator.sendBeacon(LOG_ENDPOINT, blob);
           return;
         }
-      } catch (e) {}
+      }catch(e){}
 
-      try {
+      try{
         fetch(LOG_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          method:"POST",
+          headers:{ "Content-Type":"text/plain;charset=utf-8" },
           body: JSON.stringify(payload),
           keepalive: true
         });
-      } catch (e) {}
+      }catch(e){}
     }
 
-    function toTelHref(phone){
-      const digits = String(phone || "").replace(/[^\d]/g, "");
-      return digits ? ("tel:" + digits) : "";
-    }
-
-    // Toast
+    /* ===== Toast ===== */
     const toastEl = document.getElementById("toast");
     let toastTimer = null;
     function showToast(msg){
@@ -531,15 +235,24 @@
       toastTimer = setTimeout(()=>toastEl.classList.remove("show"), 1400);
     }
 
-    // Branch modal
+    /* ===== 지점 모달 ===== */
     const state = { branch: null };
-    const modalBackdrop = document.getElementById("modalBackdrop");
+
+    const branchBackdrop = document.getElementById("branchBackdrop");
     const openBranch = document.getElementById("openBranch");
-    const closeModal = document.getElementById("closeModal");
+    const closeBranch = document.getElementById("closeBranch");
     const branchList = document.getElementById("branchList");
     const branchText = document.getElementById("branchText");
 
-    function renderList(){
+    function openBranchModal(){
+      branchBackdrop.classList.add("open");
+      branchBackdrop.setAttribute("aria-hidden","false");
+    }
+    function closeBranchModal(){
+      branchBackdrop.classList.remove("open");
+      branchBackdrop.setAttribute("aria-hidden","true");
+    }
+    function renderBranchList(){
       branchList.innerHTML = "";
       BRANCHES.forEach(b=>{
         const el = document.createElement("div");
@@ -549,58 +262,63 @@
         branchList.appendChild(el);
       });
     }
-    function openModal(){
-      modalBackdrop.classList.add("open");
-      modalBackdrop.setAttribute("aria-hidden","false");
-    }
-    function closeModalFn(){
-      modalBackdrop.classList.remove("open");
-      modalBackdrop.setAttribute("aria-hidden","true");
+    function selectBranch(b){
+      state.branch = b;
+      branchText.textContent = `${b.name} 선택됨 | 다시 선택하려면 눌러주세요`;
+      // tel/reserve는 클릭에서 최종 이동 (Safari 안정)
+      btnReserve.href = b.reserve || "#";
+      logEventNoWait("branch_select", { extra:{ branch: b.name } });
+      closeBranchModal();
     }
 
+    renderBranchList();
+    openBranch.addEventListener("click", openBranchModal);
+    openBranch.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" ") openBranchModal(); });
+    closeBranch.addEventListener("click", closeBranchModal);
+    branchBackdrop.addEventListener("click", (e)=>{ if(e.target===branchBackdrop) closeBranchModal(); });
+
+    /* ===== 사업자정보 모달 ===== */
+    const bizBackdrop = document.getElementById("bizBackdrop");
+    const openBiz = document.getElementById("openBiz");
+    const closeBiz = document.getElementById("closeBiz");
+
+    function openBizModal(){
+      bizBackdrop.classList.add("open");
+      bizBackdrop.setAttribute("aria-hidden","false");
+    }
+    function closeBizModal(){
+      bizBackdrop.classList.remove("open");
+      bizBackdrop.setAttribute("aria-hidden","true");
+    }
+    openBiz.addEventListener("click", openBizModal);
+    openBiz.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" ") openBizModal(); });
+    closeBiz.addEventListener("click", closeBizModal);
+    bizBackdrop.addEventListener("click", (e)=>{ if(e.target===bizBackdrop) closeBizModal(); });
+
+    /* ===== 버튼 동작 + 추적 ===== */
     const btnCall = document.getElementById("btnCall");
     const btnKakao = document.getElementById("btnKakao");
     const btnReserve = document.getElementById("btnReserve");
     const btnMore = document.getElementById("btnMore");
 
-    function selectBranch(b){
-      state.branch = b;
-      branchText.textContent = `${b.name} 선택됨 | 다시 선택하려면 눌러주세요`;
-
-      // href 자체는 남겨두되(길게 누르면 메뉴 뜨는 기기 있음), 실제 이동은 클릭 핸들러에서 처리
-      btnCall.href = "#";
-      btnReserve.href = b.reserve || "#";
-
-      logEventNoWait("branch_select", { extra:{ branch: b.name } });
-      closeModalFn();
-    }
-
-    renderList();
-    openBranch.addEventListener("click", openModal);
-    openBranch.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" ") openModal(); });
-    closeModal.addEventListener("click", closeModalFn);
-    modalBackdrop.addEventListener("click", (e)=>{ if(e.target===modalBackdrop) closeModalFn(); });
-
     function requireBranchOrOpenModal(e){
       if(!state.branch){
-        e.preventDefault();
-        openModal();
+        e?.preventDefault?.();
+        openBranchModal();
         return true;
       }
       return false;
     }
 
-    /* ✅ 전화 차단 방지: await/fetch로 막지 않게 "로그는 sendBeacon" + "전화는 즉시 이동" */
-    btnCall.addEventListener("click", (e) => {
+    // ✅ Safari 차단 방지: 로깅은 sendBeacon(대기 없음), 전화는 즉시 location 이동
+    btnCall.addEventListener("click", (e)=>{
       e.preventDefault();
-      if (!state.branch) { openModal(); return; }
+      if(requireBranchOrOpenModal(e)) return;
 
       const telHref = toTelHref(state.branch.phone);
-      if (!telHref) return;
+      if(!telHref) return;
 
-      logEventNoWait("click", { action: "call", href: telHref });
-
-      // iOS/Safari 안정: 지연 없이 즉시
+      logEventNoWait("click", { action:"call", href: telHref });
       window.location.href = telHref;
     });
 
@@ -611,15 +329,20 @@
     });
 
     btnReserve.addEventListener("click", (e)=>{
+      e.preventDefault();
       if(requireBranchOrOpenModal(e)) return;
-      logEventNoWait("click", { action:"reserve", href: btnReserve.href });
+
+      const href = state.branch.reserve || btnReserve.href || "";
+      logEventNoWait("click", { action:"reserve", href });
+      if(href) window.location.href = href;
     });
 
-    btnMore.addEventListener("click", ()=>{
+    btnMore.addEventListener("click", (e)=>{
+      // 외부 이동은 기본 href로, 로깅만 먼저
       logEventNoWait("click", { action:"more", href: btnMore.href });
     });
 
-    // visit
+    /* ===== 방문 1회 기록 ===== */
     (function logVisitOnce(){
       const key = "HB_VISIT_" + getSessionId();
       if(!sessionStorage.getItem(key)){
@@ -628,7 +351,7 @@
       }
     })();
 
-    // Slider + dots + swipe
+    /* ===== 슬라이드 + 도트 + 스와이프 ===== */
     const canvas = document.getElementById("canvas");
     const slides = Array.from(document.querySelectorAll(".bg img"));
     const dotsWrap = document.getElementById("dots");
@@ -673,6 +396,7 @@
     buildDots();
     startAuto();
 
+    // 스와이프
     let touchX0 = null, touchY0 = null, moved = false;
     canvas.addEventListener("touchstart", (e)=>{
       if(!e.touches || e.touches.length !== 1) return;

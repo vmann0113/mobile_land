@@ -78,15 +78,12 @@
       box-shadow: 0 20px 80px rgba(0,0,0,0.45);
     }
 
-    /* ✅ 1) 배경 이미지 위 100px 잘린 것처럼 보이게:
-       bg 레이어 자체를 위로 -100px 올리고, 높이를 +100px
-       => 화면 안에서는 위쪽 100px이 안 보임(크롭 효과)
-    */
+    /* 배경: 위 100px 크롭 효과 */
     .bg{
       position:absolute;
       left:0; right:0;
-      top: calc(-40 / 844 * 100%);                 /* -100px */
-      height: calc(100% + (100 / 844 * 100%));      /* +100px */
+      top: calc(-100 / 844 * 100%);
+      height: calc(100% + (100 / 844 * 100%));
       z-index:0;
       overflow:hidden;
     }
@@ -124,10 +121,9 @@
 
     .abs{ position:absolute; z-index:2; }
 
-    /* 지점 버튼 */
     .branch{
       left:  calc(16.5 / 390 * 100%);
-      top:   calc(562 / 844 * 100%);
+      top:   calc(538.1 / 844 * 100%);
       width: calc(357 / 390 * 100%);
       height:calc(34.5 / 844 * 100%);
       border-radius: 999px;
@@ -164,7 +160,7 @@
       position:absolute;
       left: 50%;
       transform: translateX(-50%);
-      top: calc(538 / 844 * 100%);
+      top: calc(518 / 844 * 100%);
       z-index: 3;
       display:flex;
       align-items:center;
@@ -181,12 +177,12 @@
     }
     .dot.on{ background: rgba(255,255,255,0.95); }
 
-    /* ✅ 2) 액션 패널 높이 아래로 +10px: 97 → 107 */
+    /* 액션 패널: 높이 +10px 적용(107) */
     .action-panel{
       left:  calc(16.5 / 390 * 100%);
-      top:   calc(604 / 844 * 100%);
+      top:   calc(583 / 844 * 100%);
       width: calc(357 / 390 * 100%);
-      height:calc(107 / 844 * 100%);   /* +10px */
+      height:calc(107 / 844 * 100%);
       border-radius: 22px;
       padding: 10px 12px;
       display:flex;
@@ -236,12 +232,12 @@
       white-space:nowrap;
     }
 
-    /* ✅ 3) 푸터 높이 아래로 +10px: 114 → 124 */
+    /* 푸터: 높이 +10px 적용(124) */
     .footer{
       left:  calc(16.5 / 390 * 100%);
-      top:   calc(720 / 844 * 100%);
+      top:   calc(704 / 844 * 100%);
       width: calc(357 / 390 * 100%);
-      height:calc(120 / 844 * 100%);   /* +10px */
+      height:calc(124 / 844 * 100%);
       border-radius: 18px;
       background: var(--footer-bg);
       border: 1px solid var(--footer-border);
@@ -346,7 +342,7 @@
       background: rgba(0,0,0,0.72);
       color: rgba(255,255,255,0.95);
       font-weight: 900;
-      font-size: 10px;
+      font-size: 12px;
       line-height: 1;
       opacity: 0;
       pointer-events: none;
@@ -413,7 +409,7 @@
         <div class="meta">
           운영사 : ㈜브이커뮤니케이션 &nbsp;&nbsp;|&nbsp;&nbsp; 대표자 : 김정태 &nbsp;&nbsp;|&nbsp;&nbsp; 사업자등록번호 : 744-87-02865<br>
           주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)<br>
-          고객센터 : 051-711-3722 &nbsp;&nbsp;|&nbsp;&nbsp; 이메일 : contact@v-comm.co.kr &nbsp;&nbsp;|&nbsp;&nbsp; 제휴사 : 한빔한복
+          고객센터 : 051-711-3722 &nbsp;&nbsp;|&nbsp;&nbsp; 이메일 : contact@v-comm.co.kr &nbsp;&nbsp;|&nbsp;&nbsp; 제휴사 : 한빔한복 전지점
         </div>
         <hr>
         <div class="note">
@@ -439,10 +435,11 @@
 
   <script>
     /************ 반드시 교체 ************/
-    const LOG_ENDPOINT = "AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI";
+    const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
     /************************************/
 
-    const SLIDE_INTERVAL_MS = 6000;
+    /* ✅ 배경 전환 속도: 기존 6.0s → 5.5s (0.5초 빠르게) */
+    const SLIDE_INTERVAL_MS = 5500;
 
     const BRANCHES = [
       { name:"부산점",     phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812" },
@@ -481,11 +478,9 @@
         utm_term: p.get("utm_term") || ""
       };
     }
-    function toTelHref(phone){
-      const digits = String(phone || "").replace(/[^\d]/g, "");
-      return digits ? ("tel:" + digits) : "#";
-    }
-    async function logEvent(type, data={}){
+
+    /* ✅ 보편적 로깅(전화 차단 방지용): sendBeacon 우선 + fetch(비대기) fallback */
+    function logEventNoWait(type, data = {}) {
       const utm = getUTM();
       const payload = {
         type,
@@ -502,14 +497,28 @@
         extra: data.extra ? JSON.stringify(data.extra) : "",
         ...utm
       };
-      try{
-        await fetch(LOG_ENDPOINT, {
-          method:"POST",
-          headers:{ "Content-Type":"text/plain;charset=utf-8" },
+
+      try {
+        const blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=utf-8" });
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(LOG_ENDPOINT, blob);
+          return;
+        }
+      } catch (e) {}
+
+      try {
+        fetch(LOG_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload),
           keepalive: true
         });
-      }catch(e){ console.warn("logEvent failed", e); }
+      } catch (e) {}
+    }
+
+    function toTelHref(phone){
+      const digits = String(phone || "").replace(/[^\d]/g, "");
+      return digits ? ("tel:" + digits) : "";
     }
 
     // Toast
@@ -557,9 +566,12 @@
     function selectBranch(b){
       state.branch = b;
       branchText.textContent = `${b.name} 선택됨 | 다시 선택하려면 눌러주세요`;
-      btnCall.href = toTelHref(b.phone);
+
+      // href 자체는 남겨두되(길게 누르면 메뉴 뜨는 기기 있음), 실제 이동은 클릭 핸들러에서 처리
+      btnCall.href = "#";
       btnReserve.href = b.reserve || "#";
-      logEvent("branch_select", { extra:{ branch: b.name } });
+
+      logEventNoWait("branch_select", { extra:{ branch: b.name } });
       closeModalFn();
     }
 
@@ -578,21 +590,33 @@
       return false;
     }
 
-    btnCall.addEventListener("click", (e)=>{
-      if(requireBranchOrOpenModal(e)) return;
-      logEvent("click", { action:"call", href: btnCall.href });
+    /* ✅ 전화 차단 방지: await/fetch로 막지 않게 "로그는 sendBeacon" + "전화는 즉시 이동" */
+    btnCall.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!state.branch) { openModal(); return; }
+
+      const telHref = toTelHref(state.branch.phone);
+      if (!telHref) return;
+
+      logEventNoWait("click", { action: "call", href: telHref });
+
+      // iOS/Safari 안정: 지연 없이 즉시
+      window.location.href = telHref;
     });
+
     btnKakao.addEventListener("click", (e)=>{
       e.preventDefault();
       showToast("준비중입니다.");
-      logEvent("click", { action:"kakao_pending", href:"" });
+      logEventNoWait("click", { action:"kakao_pending", href:"" });
     });
+
     btnReserve.addEventListener("click", (e)=>{
       if(requireBranchOrOpenModal(e)) return;
-      logEvent("click", { action:"reserve", href: btnReserve.href });
+      logEventNoWait("click", { action:"reserve", href: btnReserve.href });
     });
+
     btnMore.addEventListener("click", ()=>{
-      logEvent("click", { action:"more", href: btnMore.href });
+      logEventNoWait("click", { action:"more", href: btnMore.href });
     });
 
     // visit
@@ -600,7 +624,7 @@
       const key = "HB_VISIT_" + getSessionId();
       if(!sessionStorage.getItem(key)){
         sessionStorage.setItem(key, "1");
-        logEvent("visit", { extra:{ ts: Date.now() } });
+        logEventNoWait("visit", { extra:{ ts: Date.now() } });
       }
     })();
 
@@ -674,9 +698,6 @@
       }
       touchX0 = null; touchY0 = null; moved = false;
     }, { passive:true });
-
-    btnCall.href = "#";
-    btnReserve.href = "#";
   </script>
 </body>
 </html>

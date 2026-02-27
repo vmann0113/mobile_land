@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>hanbeam.kr</title>
 
-  <!-- 외부 의존성 0, 보안/평판 안정 -->
+  <!-- 보안/평판 안정 (외부 의존성 최소) -->
   <meta http-equiv="Content-Security-Policy"
         content="
           default-src 'self';
@@ -22,48 +22,48 @@
 
   <style>
     :root{
-      --W: 390; --H: 844;
-      --s: calc(100vw / var(--W));
-      --maxW: 480px;
+      /* 390x844 디자인을 “비율”로 재현하기 위한 기준값 */
+      --W: 390;
+      --H: 844;
 
-      /* glass */
       --glass-bg: rgba(255,255,255,0.52);
       --glass-blur: 10px;
       --glass-border: rgba(255,255,255,0.28);
 
-      /* footer */
       --footer-bg: rgba(0,0,0,0.45);
       --footer-border: rgba(255,255,255,0.12);
 
       --text-dark: #2a1b17;
       --text-white: rgba(255,255,255,0.92);
       --text-white-soft: rgba(255,255,255,0.78);
+
+      --maxW: 480px; /* PC에서 너무 커지지 않게 */
     }
 
     *{ box-sizing:border-box; }
     html, body { height: 100%; margin:0; }
     body{
-      background:#000;
-      font-family: system-ui, -apple-system, "Nanum Gothic Neo", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background:#0b0b0b;
+      font-family: system-ui, -apple-system, "Nanum Gothic Neo","Apple SD Gothic Neo","Noto Sans KR", sans-serif;
       overflow:hidden;
     }
 
     .wrap{
       width:100vw; height:100vh;
       display:flex; align-items:center; justify-content:center;
-      background:#0b0b0b;
+      padding: 0;
     }
 
+    /* “기기 화면” 프레임 */
     .screen{
       position:relative;
       width: min(100vw, var(--maxW));
       aspect-ratio: calc(var(--W) / var(--H));
       overflow:hidden;
-      background:#000;
       border-radius: 22px;
+      background:#000;
       box-shadow: 0 20px 80px rgba(0,0,0,0.45);
     }
-    .screen-inner{ position:absolute; inset:0; }
 
     .bg{ position:absolute; inset:0; z-index:0; }
     .bg img{
@@ -96,17 +96,21 @@
 
     .abs{ position:absolute; z-index:2; }
 
+    /* =========================
+       390x844 기준을 %로 환산
+       ========================= */
+
     /* 지점 버튼: 357 x 34.5 @ (16.5, 538.1) */
     .branch{
-      left: calc(16.5px * var(--s));
-      top:  calc(538.1px * var(--s));
-      width: calc(357px * var(--s));
-      height: calc(34.5px * var(--s));
-      border-radius: calc(18px * var(--s));
+      left:  calc(16.5 / 390 * 100%);
+      top:   calc(538.1 / 844 * 100%);
+      width: calc(357 / 390 * 100%);
+      height:calc(34.5 / 844 * 100%);
+      border-radius: 999px;
       display:flex;
       align-items:center;
-      gap: calc(8px * var(--s));
-      padding: 0 calc(12px * var(--s));
+      gap: 8px;
+      padding: 0 12px;
       cursor:pointer;
       user-select:none;
       color: var(--text-dark);
@@ -114,38 +118,40 @@
     .branch .txt{
       flex:1;
       font-weight:900;
-      font-size: calc(12.5px * var(--s));
+      font-size: clamp(12px, 1.9vw, 13px);
       letter-spacing: -0.01em;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
     }
-    .branch .caret{
-      width: calc(14px * var(--s));
-      height: calc(14px * var(--s));
-      opacity:.8;
+    .branch svg{
+      width: 14px;
+      height: 14px;
+      opacity:.85;
+      flex: 0 0 auto;
     }
-    .branch .caret path{ stroke: var(--text-dark); }
+    .branch svg path{ stroke: var(--text-dark); }
 
     /* 액션 패널: 357 x 97 @ (16.5, 583) */
     .action-panel{
-      left: calc(16.5px * var(--s));
-      top:  calc(583px * var(--s));
-      width: calc(357px * var(--s));
-      height: calc(97px * var(--s));
-      border-radius: calc(22px * var(--s));
-      padding: calc(10px * var(--s));
+      left:  calc(16.5 / 390 * 100%);
+      top:   calc(583 / 844 * 100%);
+      width: calc(357 / 390 * 100%);
+      height:calc(97 / 844 * 100%);
+      border-radius: 22px;
+      padding: 10px;
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
-      gap: calc(8px * var(--s));
+      gap: 10px;
     }
 
-    /* 버튼은 PNG로 표현: 63.9 x 63.9 */
+    /* 버튼 PNG: 63.9 x 63.9 (정사각) */
     .actionPng{
-      width: calc(63.9px * var(--s));
-      height: calc(63.9px * var(--s));
-      border-radius: calc(18px * var(--s));
+      width:  calc(63.9 / 390 * 100%);
+      aspect-ratio: 1 / 1;
+      height: auto;
+      border-radius: 18px;
       display:block;
       background-size: cover;
       background-position: center;
@@ -155,8 +161,10 @@
       cursor:pointer;
       position:relative;
       overflow:hidden;
+      flex: 0 0 auto;
     }
-    /* 접근성용 텍스트(눈에는 안 보이지만 스크린리더엔 읽힘) */
+    .actionPng:active{ transform: translateY(1px); }
+
     .sr-only{
       position:absolute;
       width:1px; height:1px;
@@ -164,30 +172,28 @@
       overflow:hidden; clip:rect(0,0,0,0);
       white-space:nowrap; border:0;
     }
-    /* 눌림 피드백 */
-    .actionPng:active{ transform: translateY(1px); }
 
     /* 푸터: 357 x 114 @ (16.5, 690) */
     .footer{
-      left: calc(16.5px * var(--s));
-      top:  calc(690px * var(--s));
-      width: calc(357px * var(--s));
-      height: calc(114px * var(--s));
-      border-radius: calc(18px * var(--s));
+      left:  calc(16.5 / 390 * 100%);
+      top:   calc(690 / 844 * 100%);
+      width: calc(357 / 390 * 100%);
+      height:calc(114 / 844 * 100%);
+      border-radius: 18px;
       background: var(--footer-bg);
       border: 1px solid var(--footer-border);
-      padding: calc(10px * var(--s)) calc(12px * var(--s));
+      padding: 10px 12px;
       color: var(--text-white-soft);
       overflow:hidden;
     }
     .footer .title{
       font-weight:900;
-      font-size: calc(12px * var(--s));
+      font-size: clamp(11px, 1.7vw, 12px);
       color: var(--text-white);
-      margin-bottom: calc(6px * var(--s));
+      margin-bottom: 6px;
     }
     .footer .meta{
-      font-size: calc(10px * var(--s));
+      font-size: clamp(9px, 1.45vw, 10px);
       line-height: 1.28;
       letter-spacing: -0.01em;
     }
@@ -195,99 +201,113 @@
       border:0;
       height:1px;
       background: rgba(255,255,255,0.18);
-      margin: calc(8px * var(--s)) 0;
+      margin: 8px 0;
     }
     .footer .note{
-      font-size: calc(10px * var(--s));
+      font-size: clamp(9px, 1.45vw, 10px);
       line-height: 1.3;
       color: rgba(255,255,255,0.86);
     }
 
-    /* 모달 */
+    /* ===== Modal ===== */
     .modal-backdrop{
       position:absolute; inset:0; z-index:50;
       display:none; align-items:flex-end; justify-content:center;
-      padding: calc(16px * var(--s));
+      padding: 16px;
       background: rgba(0,0,0,0.50);
     }
     .modal-backdrop.open{ display:flex; }
 
     .modal{
       width:100%;
-      border-radius: calc(22px * var(--s));
+      border-radius: 22px;
       overflow:hidden;
+      max-width: 520px;
     }
     .modalHead{
       display:flex; align-items:center; justify-content:space-between;
-      padding: calc(12px * var(--s)) calc(14px * var(--s));
+      padding: 12px 14px;
       color: var(--text-dark);
       font-weight:900;
+      background: rgba(255,255,255,0.75);
+      border-bottom: 1px solid rgba(255,255,255,0.25);
     }
     .modalHead button{
       border:none; background:transparent; cursor:pointer;
-      font-weight:900; font-size: calc(13px * var(--s));
+      font-weight:900; font-size: 13px;
       color: rgba(42,27,23,0.75);
     }
-    .modalBody{ padding: 0 calc(14px * var(--s)) calc(14px * var(--s)); }
+    .modalBody{
+      padding: 12px 14px 14px;
+      background: rgba(255,255,255,0.70);
+    }
 
     .searchRow{
-      height: calc(42px * var(--s));
-      border-radius: calc(14px * var(--s));
-      display:flex; align-items:center; gap: calc(8px * var(--s));
-      padding: 0 calc(12px * var(--s));
-      margin-bottom: calc(10px * var(--s));
+      height: 42px;
+      border-radius: 14px;
+      display:flex; align-items:center; gap: 8px;
+      padding: 0 12px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.65);
+      border: 1px solid rgba(255,255,255,0.25);
     }
-    .searchRow svg{ width: calc(16px * var(--s)); height: calc(16px * var(--s)); opacity:.85; }
+    .searchRow svg{ width: 16px; height: 16px; opacity:.85; }
     .searchRow input{
-      width:100%; border:none; outline:none; background:transparent;
-      font-weight:900; font-size: calc(13px * var(--s));
+      width:100%;
+      border:none; outline:none;
+      background:transparent;
+      font-weight:900;
+      font-size: 13px;
       color: var(--text-dark);
     }
 
     .list{
       max-height: 45vh;
       overflow:auto;
-      border-radius: calc(16px * var(--s));
+      border-radius: 16px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(255,255,255,0.25);
     }
     .item{
       display:flex; align-items:center; justify-content:space-between;
-      padding: calc(12px * var(--s)) calc(12px * var(--s));
+      padding: 12px 12px;
       border-bottom: 1px solid rgba(255,255,255,0.22);
       cursor:pointer;
       color: var(--text-dark);
       font-weight:900;
-      font-size: calc(13px * var(--s));
+      font-size: 13px;
     }
+    .item:last-child{ border-bottom:none; }
     .item small{
       display:block;
       font-weight:800;
-      font-size: calc(11px * var(--s));
+      font-size: 11px;
       color: rgba(42,27,23,0.62);
-      margin-top: calc(2px * var(--s));
+      margin-top: 2px;
     }
     .badge{
-      font-size: calc(11px * var(--s));
+      font-size: 11px;
       font-weight:900;
-      padding: calc(6px * var(--s)) calc(10px * var(--s));
+      padding: 6px 10px;
       border-radius: 999px;
       background: rgba(255,255,255,0.55);
       border: 1px solid rgba(255,255,255,0.25);
       white-space:nowrap;
     }
 
-    /* 토스트 */
+    /* ===== Toast ===== */
     .toast{
       position:absolute;
       left: 50%;
-      bottom: calc(140px * var(--s));
+      bottom: 18%;
       transform: translateX(-50%);
       z-index: 80;
-      padding: calc(10px * var(--s)) calc(14px * var(--s));
+      padding: 10px 14px;
       border-radius: 999px;
       background: rgba(0,0,0,0.72);
       color: rgba(255,255,255,0.95);
       font-weight: 900;
-      font-size: calc(12px * var(--s));
+      font-size: 12px;
       opacity: 0;
       pointer-events: none;
       transition: opacity .18s ease, transform .18s ease;
@@ -306,84 +326,84 @@
 
 <body>
   <div class="wrap">
-    <div class="screen">
-      <div class="screen-inner">
+    <div class="screen" id="screen">
 
-        <!-- 배경 -->
-        <div class="bg" aria-hidden="true">
-          <img class="active" src="assets/bg1.webp" alt="">
-          <img src="assets/bg2.webp" alt="">
-          <img src="assets/bg3.webp" alt="">
-          <img src="assets/bg4.webp" alt="">
-          <!-- <img src="assets/bg5.webp" alt=""> -->
-        </div>
-        <div class="overlay"></div>
-
-        <!-- 지점 선택 -->
-        <div class="abs branch glass" id="openBranch" role="button" tabindex="0">
-          <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
-          <!-- caret inline svg -->
-          <svg class="caret" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-
-        <!-- 액션 패널 -->
-        <div class="abs action-panel glass">
-          <a class="actionPng" id="btnCall" href="#" style="background-image:url('assets/btn-call.png');" aria-label="전화문의">
-            <span class="sr-only">전화문의</span>
-          </a>
-          <a class="actionPng" id="btnKakao" href="javascript:void(0)" style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의">
-            <span class="sr-only">카톡문의</span>
-          </a>
-          <a class="actionPng" id="btnReserve" href="#" style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약">
-            <span class="sr-only">네이버예약</span>
-          </a>
-          <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr" style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기">
-            <span class="sr-only">더 알아보기</span>
-          </a>
-        </div>
-
-        <!-- 푸터 -->
-        <div class="abs footer" aria-label="광고운영사 정보">
-          <div class="title">|&nbsp;&nbsp;광고운영사 정보&nbsp;&nbsp;|</div>
-          <div class="meta">
-            운영사 : ㈜브이커뮤니케이션 &nbsp;&nbsp;|&nbsp;&nbsp; 대표자 : 김정태 &nbsp;&nbsp;|&nbsp;&nbsp; 사업자등록번호 : 744-87-02865<br>
-            주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)<br>
-            고객센터 : 051-711-3722 &nbsp;&nbsp;|&nbsp;&nbsp; 이메일 : contact@v-comm.co.kr &nbsp;&nbsp;|&nbsp;&nbsp; 제휴사 : 한빔한복 전지점
-          </div>
-          <hr>
-          <div class="note">
-            본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.<br>
-            한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
-          </div>
-        </div>
-
-        <!-- 토스트 -->
-        <div class="toast" id="toast">준비중입니다.</div>
-
-        <!-- 지점 선택 모달 -->
-        <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
-          <div class="modal glass" role="dialog" aria-modal="true" aria-label="지점 선택">
-            <div class="modalHead">
-              <div>지점 선택</div>
-              <button id="closeModal" type="button">닫기</button>
-            </div>
-            <div class="modalBody">
-              <div class="searchRow glass">
-                <!-- search inline svg -->
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" stroke="#2a1b17" stroke-width="2"></circle>
-                  <line x1="16.65" y1="16.65" x2="21" y2="21" stroke="#2a1b17" stroke-width="2"></line>
-                </svg>
-                <input id="branchSearch" type="text" placeholder="지점 이름 검색 (예: 부산, 김해, 창원)" autocomplete="off">
-              </div>
-              <div class="list glass" id="branchList"></div>
-            </div>
-          </div>
-        </div>
-
+      <!-- 배경 슬라이드 -->
+      <div class="bg" aria-hidden="true">
+        <img class="active" src="assets/bg1.webp" alt="">
+        <img src="assets/bg2.webp" alt="">
+        <img src="assets/bg3.webp" alt="">
+        <img src="assets/bg4.webp" alt="">
+        <!-- <img src="assets/bg5.webp" alt=""> -->
       </div>
+      <div class="overlay"></div>
+
+      <!-- 지점 선택 버튼 -->
+      <div class="abs branch glass" id="openBranch" role="button" tabindex="0">
+        <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 액션 버튼(네 디자인 PNG 4개) -->
+      <div class="abs action-panel glass">
+        <a class="actionPng" id="btnCall" href="#"
+           style="background-image:url('assets/btn-call.png');" aria-label="전화문의">
+          <span class="sr-only">전화문의</span>
+        </a>
+        <a class="actionPng" id="btnKakao" href="javascript:void(0)"
+           style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의">
+          <span class="sr-only">카톡문의</span>
+        </a>
+        <a class="actionPng" id="btnReserve" href="#"
+           style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약">
+          <span class="sr-only">네이버예약</span>
+        </a>
+        <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr"
+           style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기">
+          <span class="sr-only">더 알아보기</span>
+        </a>
+      </div>
+
+      <!-- 푸터 -->
+      <div class="abs footer" aria-label="광고운영사 정보">
+        <div class="title">|&nbsp;&nbsp;광고운영사 정보&nbsp;&nbsp;|</div>
+        <div class="meta">
+          운영사 : ㈜브이커뮤니케이션 &nbsp;&nbsp;|&nbsp;&nbsp; 대표자 : 김정태 &nbsp;&nbsp;|&nbsp;&nbsp; 사업자등록번호 : 744-87-02865<br>
+          주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)<br>
+          고객센터 : 051-711-3722 &nbsp;&nbsp;|&nbsp;&nbsp; 이메일 : contact@v-comm.co.kr &nbsp;&nbsp;|&nbsp;&nbsp; 제휴사 : 한빔한복 전지점
+        </div>
+        <hr>
+        <div class="note">
+          본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.<br>
+          한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
+        </div>
+      </div>
+
+      <!-- 토스트 -->
+      <div class="toast" id="toast">준비중입니다.</div>
+
+      <!-- 지점 선택 모달 -->
+      <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
+          <div class="modalHead">
+            <div>지점 선택</div>
+            <button id="closeModal" type="button">닫기</button>
+          </div>
+          <div class="modalBody">
+            <div class="searchRow">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="#2a1b17" stroke-width="2"></circle>
+                <line x1="16.65" y1="16.65" x2="21" y2="21" stroke="#2a1b17" stroke-width="2"></line>
+              </svg>
+              <input id="branchSearch" type="text" placeholder="지점 이름 검색 (예: 부산, 김해, 창원)" autocomplete="off">
+            </div>
+            <div class="list" id="branchList"></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -394,7 +414,7 @@
 
     const SLIDE_INTERVAL_MS = 2000;
 
-    // ===== 지점 데이터(11개 반영) =====
+    // ===== 지점 데이터(11개) =====
     const BRANCHES = [
       { name:"부산점",     tags:"부산", phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812" },
       { name:"부산센텀점", tags:"부산", phone:"010-3052-2325", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
@@ -455,6 +475,7 @@
         extra: data.extra ? JSON.stringify(data.extra) : "",
         ...utm
       };
+
       try{
         await fetch(LOG_ENDPOINT, {
           method:"POST",
@@ -463,6 +484,7 @@
           keepalive: true
         });
       }catch(e){
+        // 로그 실패는 UX에 영향 주지 않게 조용히 처리
         console.warn("logEvent failed", e);
       }
     }
@@ -561,6 +583,7 @@
       renderList(filtered);
     });
 
+    // 지점 선택 안 하면 모달 먼저 띄우기
     function requireBranchOrOpenModal(e){
       if(!state.branch){
         e.preventDefault();

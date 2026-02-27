@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>hanbeam.kr</title>
+
+  <meta http-equiv="Content-Security-Policy"
+        content="
+          default-src 'self';
+          img-src 'self' data:;
+          style-src 'self' 'unsafe-inline';
+          script-src 'self' 'unsafe-inline';
+          connect-src 'self' https://script.google.com https://script.googleusercontent.com;
+          base-uri 'none';
+          object-src 'none';
+          frame-ancestors 'none';
+        " />
+
+  <link rel="preload" as="image" href="assets/bg1.webp" />
+
+  <style>
+    :root{
+      --W: 390; --H: 844;
+      --s: calc(100vw / var(--W));
+      --maxW: 480px;
+
+      --glass-bg: rgba(255,255,255,0.52);
+      --glass-blur: 10px;
+      --glass-border: rgba(255,255,255,0.28);
+
+      --footer-bg: rgba(0,0,0,0.45);
+      --footer-border: rgba(255,255,255,0.12);
+
+      --text-dark: #2a1b17;
+      --text-white: rgba(255,255,255,0.92);
+      --text-white-soft: rgba(255,255,255,0.78);
+    }
+
+    *{ box-sizing:border-box; }
+    html, body { height: 100%; margin:0; }
+    body{
+      background:#000;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
+      overflow:hidden;
+    }
+
+    .wrap{
+      width:100vw; height:100vh;
+      display:flex; align-items:center; justify-content:center;
+      background:#0b0b0b;
+    }
+
+    .screen{
+      position:relative;
+      width: min(100vw, var(--maxW));
+      aspect-ratio: calc(var(--W) / var(--H));
+      overflow:hidden;
+      background:#000;
+      border-radius: 22px;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.45);
+    }
+    .screen-inner{ position:absolute; inset:0; }
+
+    .bg{ position:absolute; inset:0; z-index:0; }
+    .bg img{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit:cover;
+      opacity:0;
+      transition: opacity .6s ease;
+    }
+    .bg img.active{ opacity:1; }
+
+    .overlay{
+      position:absolute; inset:0; z-index:1;
+      pointer-events:none;
+      background: linear-gradient(to bottom,
+        rgba(0,0,0,0.00) 45%,
+        rgba(0,0,0,0.55) 100%);
+    }
+
+    .glass{
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--glass-border);
+      box-shadow:
+        0 10px 24px rgba(0,0,0,0.16),
+        0 2px 6px rgba(0,0,0,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.55);
+    }
+
+    .abs{ position:absolute; z-index:2; }
+
+    /* Branch button: 357 x 34.5 @ (16.5, 538.1) */
+    .branch{
+      left: calc(16.5px * var(--s));
+      top:  calc(538.1px * var(--s));
+      width: calc(357px * var(--s));
+      height: calc(34.5px * var(--s));
+      border-radius: calc(18px * var(--s));
+      display:flex;
+      align-items:center;
+      gap: calc(8px * var(--s));
+      padding: 0 calc(12px * var(--s));
+      color: var(--text-dark);
+      cursor:pointer;
+      user-select:none;
+    }
+    .branch .txt{
+      flex:1;
+      font-weight:900;
+      font-size: calc(12.5px * var(--s));
+      letter-spacing: -0.01em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .branch .caret{
+      width: calc(14px * var(--s));
+      height: calc(14px * var(--s));
+      opacity:.75;
+    }
+
+    /* Action panel: 357 x 97 @ (16.5, 583) */
+    .action-panel{
+      left: calc(16.5px * var(--s));
+      top:  calc(583px * var(--s));
+      width: calc(357px * var(--s));
+      height: calc(97px * var(--s));
+      border-radius: calc(22px * var(--s));
+      padding: calc(10px * var(--s)) calc(10px * var(--s));
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: calc(8px * var(--s));
+    }
+
+    /* Action buttons: 63.9 x 63.9 (4x) + label */
+    .action{
+      width: calc(63.9px * var(--s));
+      height: calc(63.9px * var(--s));
+      border-radius: calc(18px * var(--s));
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap: calc(6px * var(--s));
+      text-decoration:none;
+      -webkit-tap-highlight-color: transparent;
+      color: var(--text-dark);
+      font-weight:900;
+      cursor:pointer;
+    }
+    .action img{
+      width: calc(22px * var(--s));
+      height: calc(22px * var(--s));
+    }
+    .action .label{
+      font-size: calc(10.8px * var(--s));
+      line-height: 1;
+      opacity: .92;
+      white-space:nowrap;
+    }
+
+    /* Footer: 357 x 114 @ (16.5, 690) */
+    .footer{
+      left: calc(16.5px * var(--s));
+      top:  calc(690px * var(--s));
+      width: calc(357px * var(--s));
+      height: calc(114px * var(--s));
+      border-radius: calc(18px * var(--s));
+      background: var(--footer-bg);
+      border: 1px solid var(--footer-border);
+      padding: calc(10px * var(--s)) calc(12px * var(--s));
+      color: var(--text-white-soft);
+      overflow:hidden;
+    }
+    .footer .title{
+      font-weight:900;
+      font-size: calc(12px * var(--s));
+      color: var(--text-white);
+      margin-bottom: calc(6px * var(--s));
+    }
+    .footer .meta{
+      font-size: calc(10px * var(--s));
+      line-height: 1.28;
+      letter-spacing: -0.01em;
+    }
+    .footer hr{
+      border:0;
+      height:1px;
+      background: rgba(255,255,255,0.18);
+      margin: calc(8px * var(--s)) 0;
+    }
+    .footer .note{
+      font-size: calc(10px * var(--s));
+      line-height: 1.3;
+      color: rgba(255,255,255,0.86);
+    }
+
+    /* Modal */
+    .modal-backdrop{
+      position:absolute; inset:0; z-index:50;
+      display:none; align-items:flex-end; justify-content:center;
+      padding: calc(16px * var(--s));
+      background: rgba(0,0,0,0.50);
+    }
+    .modal-backdrop.open{ display:flex; }
+    .modal{ width:100%; border-radius: calc(22px * var(--s)); overflow:hidden; }
+    .modalHead{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: calc(12px * var(--s)) calc(14px * var(--s));
+      color: var(--text-dark); font-weight:900;
+    }
+    .modalHead button{
+      border:none; background:transparent; cursor:pointer;
+      font-weight:900; font-size: calc(13px * var(--s));
+      color: rgba(42,27,23,0.75);
+    }
+    .modalBody{ padding: 0 calc(14px * var(--s)) calc(14px * var(--s)); }
+    .searchRow{
+      height: calc(42px * var(--s));
+      border-radius: calc(14px * var(--s));
+      display:flex; align-items:center; gap: calc(8px * var(--s));
+      padding: 0 calc(12px * var(--s));
+      margin-bottom: calc(10px * var(--s));
+    }
+    .searchRow img{ width: calc(16px * var(--s)); height: calc(16px * var(--s)); opacity:.85; }
+    .searchRow input{
+      width:100%; border:none; outline:none; background:transparent;
+      font-weight:900; font-size: calc(13px * var(--s));
+      color: var(--text-dark);
+    }
+    .list{
+      max-height: 45vh;
+      overflow:auto;
+      border-radius: calc(16px * var(--s));
+    }
+    .item{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: calc(12px * var(--s)) calc(12px * var(--s));
+      border-bottom: 1px solid rgba(255,255,255,0.22);
+      cursor:pointer; color: var(--text-dark);
+      font-weight:900; font-size: calc(13px * var(--s));
+    }
+    .item small{
+      display:block; font-weight:800;
+      font-size: calc(11px * var(--s));
+      color: rgba(42,27,23,0.62);
+      margin-top: calc(2px * var(--s));
+    }
+    .badge{
+      font-size: calc(11px * var(--s));
+      font-weight:900;
+      padding: calc(6px * var(--s)) calc(10px * var(--s));
+      border-radius: 999px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(255,255,255,0.25);
+      white-space:nowrap;
+    }
+
+    /* Toast */
+    .toast{
+      position:absolute;
+      left: 50%;
+      bottom: calc(140px * var(--s)); /* 푸터/버튼 위로 */
+      transform: translateX(-50%);
+      z-index: 80;
+      padding: calc(10px * var(--s)) calc(14px * var(--s));
+      border-radius: 999px;
+      background: rgba(0,0,0,0.72);
+      color: rgba(255,255,255,0.95);
+      font-weight: 900;
+      font-size: calc(12px * var(--s));
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .bg img{ transition:none; }
+      .toast{ transition:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="screen" id="screen">
+      <div class="screen-inner">
+
+        <!-- Background -->
+        <div class="bg" aria-hidden="true">
+          <img class="active" src="assets/bg1.webp" alt="">
+          <img src="assets/bg2.webp" alt="">
+          <img src="assets/bg3.webp" alt="">
+          <img src="assets/bg4.webp" alt="">
+          <!-- <img src="assets/bg5.webp" alt=""> -->
+        </div>
+        <div class="overlay"></div>
+
+        <!-- Branch button -->
+        <div class="abs branch glass" id="openBranch" role="button" tabindex="0">
+          <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
+          <img class="caret" src="assets/ico-caret.png" alt="">
+        </div>
+
+        <!-- Action panel -->
+        <div class="abs action-panel glass">
+          <a class="action" id="btnCall" href="#" aria-label="전화문의">
+            <img src="assets/ico-call.png" alt="">
+            <div class="label">전화문의</div>
+          </a>
+          <a class="action" id="btnKakao" href="javascript:void(0)" aria-label="카톡문의">
+            <img src="assets/ico-kakao.png" alt="">
+            <div class="label">카톡문의</div>
+          </a>
+          <a class="action" id="btnReserve" href="#" aria-label="네이버예약">
+            <img src="assets/ico-naver.png" alt="">
+            <div class="label">네이버예약</div>
+          </a>
+          <a class="action" id="btnMore" href="https://hanbeam.co.kr" aria-label="더 알아보기">
+            <img src="assets/ico-more.png" alt="">
+            <div class="label">더 알아보기</div>
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <div class="abs footer" aria-label="광고운영사 정보">
+          <div class="title">|&nbsp;&nbsp;광고운영사 정보&nbsp;&nbsp;|</div>
+          <div class="meta">
+            운영사 : ㈜브이커뮤니케이션 &nbsp;&nbsp;|&nbsp;&nbsp; 대표자 : 김정태 &nbsp;&nbsp;|&nbsp;&nbsp; 사업자등록번호 : 744-87-02865<br>
+            주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)<br>
+            고객센터 : 051-711-3722 &nbsp;&nbsp;|&nbsp;&nbsp; 이메일 : contact@v-comm.co.kr &nbsp;&nbsp;|&nbsp;&nbsp; 제휴사 : 한빔한복 전지점
+          </div>
+          <hr>
+          <div class="note">
+            본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.<br>
+            한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
+          </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast">준비중입니다.</div>
+
+        <!-- Branch Modal -->
+        <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+          <div class="modal glass" role="dialog" aria-modal="true" aria-label="지점 선택">
+            <div class="modalHead">
+              <div>지점 선택</div>
+              <button id="closeModal" type="button">닫기</button>
+            </div>
+            <div class="modalBody">
+              <div class="searchRow glass">
+                <img src="assets/ico-search.png" alt="">
+                <input id="branchSearch" type="text" placeholder="지점 이름 검색 (예: 부산, 김해, 창원)" autocomplete="off">
+              </div>
+              <div class="list glass" id="branchList"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ✅ 여기에 네 GAS 웹앱 exec URL 넣기
+    const LOG_ENDPOINT = "https://script.google.com/macros/s/PUT_YOUR_SCRIPT_ID/exec";
+
+    const SLIDE_INTERVAL_MS = 2000;
+
+    // ===== Branch data (11개 반영 완료) =====
+    const BRANCHES = [
+      { name:"부산점",     tags:"부산", phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812" },
+      { name:"부산센텀점", tags:"부산", phone:"010-3052-2325", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
+      { name:"김해점",     tags:"김해", phone:"010.8065.2325", reserve:"https://booking.naver.com/booking/6/bizes/1402679" },
+      { name:"창원점",     tags:"창원", phone:"055.263.2325", reserve:"https://booking.naver.com/booking/6/bizes/843111" },
+      { name:"양산점",     tags:"양산", phone:"055.912.0425", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
+      { name:"진주점",     tags:"진주", phone:"010.5654.2407", reserve:"https://m.booking.naver.com/booking/6/bizes/1485854" },
+      { name:"인천점",     tags:"인천", phone:"032.283.2325", reserve:"https://m.booking.naver.com/booking/13/bizes/1039475" },
+      { name:"안산점",     tags:"안산", phone:"010.6591.2322", reserve:"https://m.booking.naver.com/booking/6/bizes/1500008" },
+      { name:"마산점",     tags:"마산", phone:"010.8832.2325", reserve:"https://booking.naver.com/booking/6/bizes/1526541" },
+      { name:"울산점",     tags:"울산", phone:"010.9807.2325", reserve:"https://booking.naver.com/booking/6/bizes/1534767" },
+      { name:"대구점",     tags:"대구", phone:"010-8492-2328", reserve:"https://m.place.naver.com/place/2043617700/ticket?entry=pll&bk_query=%ED%95%9C%EB%B9%94%ED%95%9C%EB%B3%B5" },
+    ];
+
+    // ===== Helpers =====
+    function getDeviceType(){
+      const ua = navigator.userAgent || "";
+      return (/Android|iPhone|iPad|iPod|Mobile/i.test(ua)) ? "mobile" : "pc";
+    }
+    function getSessionId(){
+      const k = "HB_LANDING_SID";
+      let v = localStorage.getItem(k);
+      if(!v){
+        v = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+"_"+Math.random().toString(16).slice(2));
+        localStorage.setItem(k, v);
+      }
+      return v;
+    }
+    function getUTM(){
+      const p = new URLSearchParams(location.search);
+      return {
+        utm_source: p.get("utm_source") || "",
+        utm_medium: p.get("utm_medium") || "",
+        utm_campaign: p.get("utm_campaign") || "",
+        utm_content: p.get("utm_content") || "",
+        utm_term: p.get("utm_term") || ""
+      };
+    }
+    function toTelHref(phone){
+      // 숫자만 남겨 tel:로
+      const digits = String(phone || "").replace(/[^\d]/g, "");
+      return digits ? ("tel:" + digits) : "#";
+    }
+    async function logEvent(type, data={}){
+      const utm = getUTM();
+      const payload = {
+        type,
+        sessionId: getSessionId(),
+        device: getDeviceType(),
+        branch: (state.branch && state.branch.name) ? state.branch.name : "",
+        action: data.action || "",
+        href: data.href || "",
+        page: location.pathname || "/",
+        referrer: document.referrer || "",
+        userAgent: navigator.userAgent || "",
+        lang: navigator.language || "",
+        screen: `${window.innerWidth}x${window.innerHeight}`,
+        extra: data.extra ? JSON.stringify(data.extra) : "",
+        ...utm
+      };
+      try{
+        await fetch(LOG_ENDPOINT, {
+          method:"POST",
+          headers:{ "Content-Type":"text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+          keepalive: true
+        });
+      }catch(e){
+        console.warn("logEvent failed", e);
+      }
+    }
+
+    // ===== Slider =====
+    (function startSlider(){
+      const slides = document.querySelectorAll(".bg img");
+      if(!slides.length) return;
+      let i = 0;
+      setInterval(()=>{
+        slides[i].classList.remove("active");
+        i = (i+1) % slides.length;
+        slides[i].classList.add("active");
+      }, SLIDE_INTERVAL_MS);
+    })();
+
+    // ===== Toast =====
+    const toastEl = document.getElementById("toast");
+    let toastTimer = null;
+    function showToast(msg){
+      toastEl.textContent = msg || "준비중입니다.";
+      toastEl.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>toastEl.classList.remove("show"), 1400);
+    }
+
+    // ===== State =====
+    const state = { branch: null };
+
+    // ===== Modal UI =====
+    const modalBackdrop = document.getElementById("modalBackdrop");
+    const openBranch = document.getElementById("openBranch");
+    const closeModal = document.getElementById("closeModal");
+    const branchSearch = document.getElementById("branchSearch");
+    const branchList = document.getElementById("branchList");
+    const branchText = document.getElementById("branchText");
+
+    function renderList(items){
+      branchList.innerHTML = "";
+      if(items.length === 0){
+        const empty = document.createElement("div");
+        empty.className = "item";
+        empty.style.justifyContent = "center";
+        empty.innerHTML = `<small>검색 결과가 없습니다</small>`;
+        branchList.appendChild(empty);
+        return;
+      }
+      items.forEach(b=>{
+        const el = document.createElement("div");
+        el.className = "item";
+        el.innerHTML = `
+          <div>${b.name}<small>${b.tags || ""} · ${b.phone || ""}</small></div>
+          <div class="badge">선택</div>
+        `;
+        el.addEventListener("click", ()=>selectBranch(b));
+        branchList.appendChild(el);
+      });
+    }
+
+    function openModal(){
+      modalBackdrop.classList.add("open");
+      modalBackdrop.setAttribute("aria-hidden","false");
+      branchSearch.value = "";
+      renderList(BRANCHES);
+      setTimeout(()=>branchSearch.focus(), 30);
+    }
+    function closeModalFn(){
+      modalBackdrop.classList.remove("open");
+      modalBackdrop.setAttribute("aria-hidden","true");
+    }
+
+    // Buttons
+    const btnCall = document.getElementById("btnCall");
+    const btnKakao = document.getElementById("btnKakao");
+    const btnReserve = document.getElementById("btnReserve");
+    const btnMore = document.getElementById("btnMore");
+
+    function selectBranch(b){
+      state.branch = b;
+
+      // 지점 버튼 문구(선택 상태 표시)
+      branchText.textContent = `${b.name} 선택됨 | 다시 선택하려면 눌러주세요`;
+
+      // 전화 / 예약 링크 갱신
+      btnCall.href = toTelHref(b.phone);
+      btnReserve.href = b.reserve || "#";
+
+      logEvent("branch_select", { extra:{ branch: b.name } });
+      closeModalFn();
+    }
+
+    openBranch.addEventListener("click", openModal);
+    openBranch.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" ") openModal(); });
+    closeModal.addEventListener("click", closeModalFn);
+    modalBackdrop.addEventListener("click", (e)=>{ if(e.target===modalBackdrop) closeModalFn(); });
+
+    branchSearch.addEventListener("input", ()=>{
+      const q = branchSearch.value.trim().toLowerCase();
+      const filtered = BRANCHES.filter(b =>
+        b.name.toLowerCase().includes(q) ||
+        (b.tags || "").toLowerCase().includes(q)
+      );
+      renderList(filtered);
+    });
+
+    // ===== CTA behavior & tracking =====
+    function requireBranchOrOpenModal(e){
+      if(!state.branch){
+        e.preventDefault();
+        openModal();
+        return true;
+      }
+      return false;
+    }
+
+    // 전화
+    btnCall.addEventListener("click", (e)=>{
+      if(requireBranchOrOpenModal(e)) return;
+      logEvent("click", { action:"call", href: btnCall.href });
+    });
+
+    // 카톡(준비중 토스트)
+    btnKakao.addEventListener("click", (e)=>{
+      e.preventDefault();
+      showToast("준비중입니다.");
+      logEvent("click", { action:"kakao_pending", href:"" });
+    });
+
+    // 예약
+    btnReserve.addEventListener("click", (e)=>{
+      if(requireBranchOrOpenModal(e)) return;
+      logEvent("click", { action:"reserve", href: btnReserve.href });
+    });
+
+    // 더 알아보기(항상 이동 가능)
+    btnMore.addEventListener("click", ()=>{
+      logEvent("click", { action:"more", href: btnMore.href });
+    });
+
+    // 방문(세션당 1회)
+    (function logVisitOnce(){
+      const key = "HB_VISIT_" + getSessionId();
+      if(!sessionStorage.getItem(key)){
+        sessionStorage.setItem(key, "1");
+        logEvent("visit", { extra:{ ts: Date.now() } });
+      }
+    })();
+
+    // 초기 링크(지점 선택 전)
+    btnCall.href = "#";
+    btnReserve.href = "#";
+  </script>
+</body>
+</html>

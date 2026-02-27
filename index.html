@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>hanbeam.kr</title>
 
+  <!-- 외부 의존성 0, 보안/평판 안정 -->
   <meta http-equiv="Content-Security-Policy"
         content="
           default-src 'self';
@@ -25,10 +26,12 @@
       --s: calc(100vw / var(--W));
       --maxW: 480px;
 
+      /* glass */
       --glass-bg: rgba(255,255,255,0.52);
       --glass-blur: 10px;
       --glass-border: rgba(255,255,255,0.28);
 
+      /* footer */
       --footer-bg: rgba(0,0,0,0.45);
       --footer-border: rgba(255,255,255,0.12);
 
@@ -41,7 +44,7 @@
     html, body { height: 100%; margin:0; }
     body{
       background:#000;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
+      font-family: system-ui, -apple-system, "Nanum Gothic Neo", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
       overflow:hidden;
     }
 
@@ -93,7 +96,7 @@
 
     .abs{ position:absolute; z-index:2; }
 
-    /* Branch button: 357 x 34.5 @ (16.5, 538.1) */
+    /* 지점 버튼: 357 x 34.5 @ (16.5, 538.1) */
     .branch{
       left: calc(16.5px * var(--s));
       top:  calc(538.1px * var(--s));
@@ -104,9 +107,9 @@
       align-items:center;
       gap: calc(8px * var(--s));
       padding: 0 calc(12px * var(--s));
-      color: var(--text-dark);
       cursor:pointer;
       user-select:none;
+      color: var(--text-dark);
     }
     .branch .txt{
       flex:1;
@@ -120,51 +123,51 @@
     .branch .caret{
       width: calc(14px * var(--s));
       height: calc(14px * var(--s));
-      opacity:.75;
+      opacity:.8;
     }
+    .branch .caret path{ stroke: var(--text-dark); }
 
-    /* Action panel: 357 x 97 @ (16.5, 583) */
+    /* 액션 패널: 357 x 97 @ (16.5, 583) */
     .action-panel{
       left: calc(16.5px * var(--s));
       top:  calc(583px * var(--s));
       width: calc(357px * var(--s));
       height: calc(97px * var(--s));
       border-radius: calc(22px * var(--s));
-      padding: calc(10px * var(--s)) calc(10px * var(--s));
+      padding: calc(10px * var(--s));
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
       gap: calc(8px * var(--s));
     }
 
-    /* Action buttons: 63.9 x 63.9 (4x) + label */
-    .action{
+    /* 버튼은 PNG로 표현: 63.9 x 63.9 */
+    .actionPng{
       width: calc(63.9px * var(--s));
       height: calc(63.9px * var(--s));
       border-radius: calc(18px * var(--s));
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap: calc(6px * var(--s));
+      display:block;
+      background-size: cover;
+      background-position: center;
+      background-repeat:no-repeat;
       text-decoration:none;
       -webkit-tap-highlight-color: transparent;
-      color: var(--text-dark);
-      font-weight:900;
       cursor:pointer;
+      position:relative;
+      overflow:hidden;
     }
-    .action img{
-      width: calc(22px * var(--s));
-      height: calc(22px * var(--s));
+    /* 접근성용 텍스트(눈에는 안 보이지만 스크린리더엔 읽힘) */
+    .sr-only{
+      position:absolute;
+      width:1px; height:1px;
+      padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0);
+      white-space:nowrap; border:0;
     }
-    .action .label{
-      font-size: calc(10.8px * var(--s));
-      line-height: 1;
-      opacity: .92;
-      white-space:nowrap;
-    }
+    /* 눌림 피드백 */
+    .actionPng:active{ transform: translateY(1px); }
 
-    /* Footer: 357 x 114 @ (16.5, 690) */
+    /* 푸터: 357 x 114 @ (16.5, 690) */
     .footer{
       left: calc(16.5px * var(--s));
       top:  calc(690px * var(--s));
@@ -200,7 +203,7 @@
       color: rgba(255,255,255,0.86);
     }
 
-    /* Modal */
+    /* 모달 */
     .modal-backdrop{
       position:absolute; inset:0; z-index:50;
       display:none; align-items:flex-end; justify-content:center;
@@ -208,11 +211,17 @@
       background: rgba(0,0,0,0.50);
     }
     .modal-backdrop.open{ display:flex; }
-    .modal{ width:100%; border-radius: calc(22px * var(--s)); overflow:hidden; }
+
+    .modal{
+      width:100%;
+      border-radius: calc(22px * var(--s));
+      overflow:hidden;
+    }
     .modalHead{
       display:flex; align-items:center; justify-content:space-between;
       padding: calc(12px * var(--s)) calc(14px * var(--s));
-      color: var(--text-dark); font-weight:900;
+      color: var(--text-dark);
+      font-weight:900;
     }
     .modalHead button{
       border:none; background:transparent; cursor:pointer;
@@ -220,6 +229,7 @@
       color: rgba(42,27,23,0.75);
     }
     .modalBody{ padding: 0 calc(14px * var(--s)) calc(14px * var(--s)); }
+
     .searchRow{
       height: calc(42px * var(--s));
       border-radius: calc(14px * var(--s));
@@ -227,12 +237,13 @@
       padding: 0 calc(12px * var(--s));
       margin-bottom: calc(10px * var(--s));
     }
-    .searchRow img{ width: calc(16px * var(--s)); height: calc(16px * var(--s)); opacity:.85; }
+    .searchRow svg{ width: calc(16px * var(--s)); height: calc(16px * var(--s)); opacity:.85; }
     .searchRow input{
       width:100%; border:none; outline:none; background:transparent;
       font-weight:900; font-size: calc(13px * var(--s));
       color: var(--text-dark);
     }
+
     .list{
       max-height: 45vh;
       overflow:auto;
@@ -242,11 +253,14 @@
       display:flex; align-items:center; justify-content:space-between;
       padding: calc(12px * var(--s)) calc(12px * var(--s));
       border-bottom: 1px solid rgba(255,255,255,0.22);
-      cursor:pointer; color: var(--text-dark);
-      font-weight:900; font-size: calc(13px * var(--s));
+      cursor:pointer;
+      color: var(--text-dark);
+      font-weight:900;
+      font-size: calc(13px * var(--s));
     }
     .item small{
-      display:block; font-weight:800;
+      display:block;
+      font-weight:800;
       font-size: calc(11px * var(--s));
       color: rgba(42,27,23,0.62);
       margin-top: calc(2px * var(--s));
@@ -261,11 +275,11 @@
       white-space:nowrap;
     }
 
-    /* Toast */
+    /* 토스트 */
     .toast{
       position:absolute;
       left: 50%;
-      bottom: calc(140px * var(--s)); /* 푸터/버튼 위로 */
+      bottom: calc(140px * var(--s));
       transform: translateX(-50%);
       z-index: 80;
       padding: calc(10px * var(--s)) calc(14px * var(--s));
@@ -292,10 +306,10 @@
 
 <body>
   <div class="wrap">
-    <div class="screen" id="screen">
+    <div class="screen">
       <div class="screen-inner">
 
-        <!-- Background -->
+        <!-- 배경 -->
         <div class="bg" aria-hidden="true">
           <img class="active" src="assets/bg1.webp" alt="">
           <img src="assets/bg2.webp" alt="">
@@ -305,33 +319,32 @@
         </div>
         <div class="overlay"></div>
 
-        <!-- Branch button -->
+        <!-- 지점 선택 -->
         <div class="abs branch glass" id="openBranch" role="button" tabindex="0">
           <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
-          <img class="caret" src="assets/ico-caret.png" alt="">
+          <!-- caret inline svg -->
+          <svg class="caret" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
 
-        <!-- Action panel -->
+        <!-- 액션 패널 -->
         <div class="abs action-panel glass">
-          <a class="action" id="btnCall" href="#" aria-label="전화문의">
-            <img src="assets/ico-call.png" alt="">
-            <div class="label">전화문의</div>
+          <a class="actionPng" id="btnCall" href="#" style="background-image:url('assets/btn-call.png');" aria-label="전화문의">
+            <span class="sr-only">전화문의</span>
           </a>
-          <a class="action" id="btnKakao" href="javascript:void(0)" aria-label="카톡문의">
-            <img src="assets/ico-kakao.png" alt="">
-            <div class="label">카톡문의</div>
+          <a class="actionPng" id="btnKakao" href="javascript:void(0)" style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의">
+            <span class="sr-only">카톡문의</span>
           </a>
-          <a class="action" id="btnReserve" href="#" aria-label="네이버예약">
-            <img src="assets/ico-naver.png" alt="">
-            <div class="label">네이버예약</div>
+          <a class="actionPng" id="btnReserve" href="#" style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약">
+            <span class="sr-only">네이버예약</span>
           </a>
-          <a class="action" id="btnMore" href="https://hanbeam.co.kr" aria-label="더 알아보기">
-            <img src="assets/ico-more.png" alt="">
-            <div class="label">더 알아보기</div>
+          <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr" style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기">
+            <span class="sr-only">더 알아보기</span>
           </a>
         </div>
 
-        <!-- Footer -->
+        <!-- 푸터 -->
         <div class="abs footer" aria-label="광고운영사 정보">
           <div class="title">|&nbsp;&nbsp;광고운영사 정보&nbsp;&nbsp;|</div>
           <div class="meta">
@@ -346,10 +359,10 @@
           </div>
         </div>
 
-        <!-- Toast -->
+        <!-- 토스트 -->
         <div class="toast" id="toast">준비중입니다.</div>
 
-        <!-- Branch Modal -->
+        <!-- 지점 선택 모달 -->
         <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
           <div class="modal glass" role="dialog" aria-modal="true" aria-label="지점 선택">
             <div class="modalHead">
@@ -358,7 +371,11 @@
             </div>
             <div class="modalBody">
               <div class="searchRow glass">
-                <img src="assets/ico-search.png" alt="">
+                <!-- search inline svg -->
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" stroke="#2a1b17" stroke-width="2"></circle>
+                  <line x1="16.65" y1="16.65" x2="21" y2="21" stroke="#2a1b17" stroke-width="2"></line>
+                </svg>
                 <input id="branchSearch" type="text" placeholder="지점 이름 검색 (예: 부산, 김해, 창원)" autocomplete="off">
               </div>
               <div class="list glass" id="branchList"></div>
@@ -371,12 +388,13 @@
   </div>
 
   <script>
-    // ✅ 여기에 네 GAS 웹앱 exec URL 넣기
+    /************ 반드시 교체 ************/
     const LOG_ENDPOINT = "https://script.google.com/macros/s/PUT_YOUR_SCRIPT_ID/exec";
+    /************************************/
 
     const SLIDE_INTERVAL_MS = 2000;
 
-    // ===== Branch data (11개 반영 완료) =====
+    // ===== 지점 데이터(11개 반영) =====
     const BRANCHES = [
       { name:"부산점",     tags:"부산", phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812" },
       { name:"부산센텀점", tags:"부산", phone:"010-3052-2325", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
@@ -388,7 +406,7 @@
       { name:"안산점",     tags:"안산", phone:"010.6591.2322", reserve:"https://m.booking.naver.com/booking/6/bizes/1500008" },
       { name:"마산점",     tags:"마산", phone:"010.8832.2325", reserve:"https://booking.naver.com/booking/6/bizes/1526541" },
       { name:"울산점",     tags:"울산", phone:"010.9807.2325", reserve:"https://booking.naver.com/booking/6/bizes/1534767" },
-      { name:"대구점",     tags:"대구", phone:"010-8492-2328", reserve:"https://m.place.naver.com/place/2043617700/ticket?entry=pll&bk_query=%ED%95%9C%EB%B9%94%ED%95%9C%EB%B3%B5" },
+      { name:"대구점",     tags:"대구", phone:"010-8492-2328", reserve:"https://m.place.naver.com/place/2043617700/ticket?entry=pll&bk_query=%ED%95%9C%EB%B9%94%ED%95%9C%EB%B3%B5" }
     ];
 
     // ===== Helpers =====
@@ -416,10 +434,10 @@
       };
     }
     function toTelHref(phone){
-      // 숫자만 남겨 tel:로
       const digits = String(phone || "").replace(/[^\d]/g, "");
       return digits ? ("tel:" + digits) : "#";
     }
+
     async function logEvent(type, data={}){
       const utm = getUTM();
       const payload = {
@@ -516,7 +534,6 @@
       modalBackdrop.setAttribute("aria-hidden","true");
     }
 
-    // Buttons
     const btnCall = document.getElementById("btnCall");
     const btnKakao = document.getElementById("btnKakao");
     const btnReserve = document.getElementById("btnReserve");
@@ -524,14 +541,9 @@
 
     function selectBranch(b){
       state.branch = b;
-
-      // 지점 버튼 문구(선택 상태 표시)
       branchText.textContent = `${b.name} 선택됨 | 다시 선택하려면 눌러주세요`;
-
-      // 전화 / 예약 링크 갱신
       btnCall.href = toTelHref(b.phone);
       btnReserve.href = b.reserve || "#";
-
       logEvent("branch_select", { extra:{ branch: b.name } });
       closeModalFn();
     }
@@ -544,13 +556,11 @@
     branchSearch.addEventListener("input", ()=>{
       const q = branchSearch.value.trim().toLowerCase();
       const filtered = BRANCHES.filter(b =>
-        b.name.toLowerCase().includes(q) ||
-        (b.tags || "").toLowerCase().includes(q)
+        b.name.toLowerCase().includes(q) || (b.tags || "").toLowerCase().includes(q)
       );
       renderList(filtered);
     });
 
-    // ===== CTA behavior & tracking =====
     function requireBranchOrOpenModal(e){
       if(!state.branch){
         e.preventDefault();
@@ -560,31 +570,28 @@
       return false;
     }
 
-    // 전화
+    // CTA tracking
     btnCall.addEventListener("click", (e)=>{
       if(requireBranchOrOpenModal(e)) return;
       logEvent("click", { action:"call", href: btnCall.href });
     });
 
-    // 카톡(준비중 토스트)
     btnKakao.addEventListener("click", (e)=>{
       e.preventDefault();
       showToast("준비중입니다.");
       logEvent("click", { action:"kakao_pending", href:"" });
     });
 
-    // 예약
     btnReserve.addEventListener("click", (e)=>{
       if(requireBranchOrOpenModal(e)) return;
       logEvent("click", { action:"reserve", href: btnReserve.href });
     });
 
-    // 더 알아보기(항상 이동 가능)
     btnMore.addEventListener("click", ()=>{
       logEvent("click", { action:"more", href: btnMore.href });
     });
 
-    // 방문(세션당 1회)
+    // Visit (세션당 1회)
     (function logVisitOnce(){
       const key = "HB_VISIT_" + getSessionId();
       if(!sessionStorage.getItem(key)){
@@ -593,7 +600,7 @@
       }
     })();
 
-    // 초기 링크(지점 선택 전)
+    // 초기 링크
     btnCall.href = "#";
     btnReserve.href = "#";
   </script>

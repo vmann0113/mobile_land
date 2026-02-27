@@ -25,7 +25,6 @@
       --H: 844;
       --maxW: 520px;
 
-      /* 더 투명한 유리창 */
       --glass-bg: rgba(255,255,255,0.34);
       --glass-blur: 10px;
       --glass-border: rgba(255,255,255,0.18);
@@ -43,7 +42,6 @@
     *{ box-sizing:border-box; }
     html, body { height:100%; margin:0; }
 
-    /* ✅ 카톡/사파리 텍스트 밀림 방지 핵심 */
     html{
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
@@ -55,7 +53,7 @@
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
       line-height: 1.2;
-      font-size: 16px; /* 기준 고정 */
+      font-size: 16px;
     }
 
     .wrap{
@@ -80,20 +78,25 @@
       box-shadow: 0 20px 80px rgba(0,0,0,0.45);
     }
 
-    /* 배경 슬라이드 */
-    .bg{ position:absolute; inset:0; z-index:0; }
+    /* ✅ 1) 배경 이미지 위 100px 잘린 것처럼 보이게:
+       bg 레이어 자체를 위로 -100px 올리고, 높이를 +100px
+       => 화면 안에서는 위쪽 100px이 안 보임(크롭 효과)
+    */
+    .bg{
+      position:absolute;
+      left:0; right:0;
+      top: calc(-100 / 844 * 100%);                 /* -100px */
+      height: calc(100% + (100 / 844 * 100%));      /* +100px */
+      z-index:0;
+      overflow:hidden;
+    }
     .bg img{
       position:absolute; inset:0;
       width:100%; height:100%;
       object-fit: cover;
-
-      /* ✅ 1) 위쪽 잘림 최소화: 위 고정 */
       object-position: top center;
-
       opacity:0;
       transition: opacity .55s ease;
-
-      /* 선명도 약간 보정 */
       filter: contrast(1.06) saturate(1.06);
       transform: translateZ(0);
       will-change: opacity;
@@ -141,13 +144,13 @@
     }
     .branch .txt{
       font-weight:900;
-      font-size: 13px;       /* ✅ vw/clamp 제거 */
+      font-size: 13px;
       letter-spacing: -0.01em;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
       text-align:center;
-      line-height: 1;        /* ✅ 라인 고정 */
+      line-height: 1;
     }
     .branch svg{
       width: 14px; height: 14px;
@@ -156,38 +159,34 @@
     }
     .branch svg path{ stroke: var(--text-dark); }
 
-    /* ✅ 2) 도트: 지점 선택 “바로 위”, 흰점만 */
+    /* 도트 */
     .dots{
       position:absolute;
       left: 50%;
       transform: translateX(-50%);
-      top: calc(518 / 844 * 100%);   /* 지점(top 538.1)보다 위로 */
+      top: calc(518 / 844 * 100%);
       z-index: 3;
       display:flex;
       align-items:center;
       gap: 6px;
-      padding: 0;                    /* 배경/패딩 제거 */
-      background: transparent;       /* ✅ 배경 제거 */
+      padding: 0;
+      background: transparent;
       border: none;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
     }
     .dot{
       width: 6px;
       height: 6px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.35); /* 흰점 */
+      background: rgba(255,255,255,0.35);
     }
-    .dot.on{
-      background: rgba(255,255,255,0.95);
-    }
+    .dot.on{ background: rgba(255,255,255,0.95); }
 
-    /* 액션 패널 */
+    /* ✅ 2) 액션 패널 높이 아래로 +10px: 97 → 107 */
     .action-panel{
       left:  calc(16.5 / 390 * 100%);
       top:   calc(583 / 844 * 100%);
       width: calc(357 / 390 * 100%);
-      height:calc(97 / 844 * 100%);
+      height:calc(107 / 844 * 100%);   /* +10px */
       border-radius: 22px;
       padding: 10px 12px;
       display:flex;
@@ -204,7 +203,6 @@
       padding-right: var(--gap);
       gap: var(--gap);
     }
-
     .btnCol{
       width: 64px;
       display:flex;
@@ -213,7 +211,6 @@
       gap: 6px;
       flex: 0 0 auto;
     }
-
     .actionPng{
       width: 64px;
       height: 64px;
@@ -228,24 +225,23 @@
       overflow:hidden;
     }
     .actionPng:active{ transform: translateY(1px); }
-
     .btnLabel{
       font-size: 11px;
       font-weight: 900;
       color: rgba(42,27,23,0.82);
       letter-spacing: -0.02em;
       text-align:center;
-      line-height: 1;       /* ✅ 밀림 방지 */
+      line-height: 1;
       user-select:none;
       white-space:nowrap;
     }
 
-    /* 푸터 (기존보다 살짝 아래 배치 유지) */
+    /* ✅ 3) 푸터 높이 아래로 +10px: 114 → 124 */
     .footer{
       left:  calc(16.5 / 390 * 100%);
       top:   calc(704 / 844 * 100%);
       width: calc(357 / 390 * 100%);
-      height:calc(114 / 844 * 100%);
+      height:calc(124 / 844 * 100%);   /* +10px */
       border-radius: 18px;
       background: var(--footer-bg);
       border: 1px solid var(--footer-border);
@@ -255,13 +251,13 @@
     }
     .footer .title{
       font-weight:900;
-      font-size: 12px;     /* ✅ 고정 */
+      font-size: 12px;
       color: var(--text-white);
       margin-bottom: 6px;
       line-height: 1.1;
     }
     .footer .meta{
-      font-size: 10px;     /* ✅ 고정 */
+      font-size: 10px;
       line-height: 1.25;
       letter-spacing: -0.01em;
     }
@@ -272,7 +268,7 @@
       margin: 8px 0;
     }
     .footer .note{
-      font-size: 10px;     /* ✅ 고정 */
+      font-size: 10px;
       line-height: 1.28;
       color: rgba(255,255,255,0.86);
     }
@@ -285,7 +281,6 @@
       background: rgba(0,0,0,0.50);
     }
     .modal-backdrop.open{ display:flex; }
-
     .modal{
       width:100%;
       border-radius: 22px;
@@ -492,12 +487,11 @@
     }
     async function logEvent(type, data={}){
       const utm = getUTM();
-      const stateBranch = (state.branch && state.branch.name) ? state.branch.name : "";
       const payload = {
         type,
         sessionId: getSessionId(),
         device: getDeviceType(),
-        branch: stateBranch,
+        branch: (state.branch && state.branch.name) ? state.branch.name : "",
         action: data.action || "",
         href: data.href || "",
         page: location.pathname || "/",

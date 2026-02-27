@@ -7,17 +7,10 @@
 <style>
   :root{
     --sky:#38a3ff;
-    --sky2:#e9f4ff;
     --text:#0f172a;
     --muted:#64748b;
     --line:#b9ddff;
-    --card:#ffffff;
-
     --r:16px;
-    --gap:10px;
-
-    /* “한 화면” 기준(대략) */
-    --vh: 1vh;
   }
   *{box-sizing:border-box;}
   body{
@@ -28,49 +21,41 @@
     -webkit-text-size-adjust:100%;
     text-size-adjust:100%;
   }
-
-  /* ✅ 스크롤 없이 한 화면 기본 (필요시 내부만 스크롤) */
-  .page{
-    height:100vh;
-    height:100dvh;
-    overflow:hidden;
-  }
-
   .wrap{
-    max-width:720px;
-    height:100%;
+    max-width:820px;
     margin:0 auto;
-    padding:14px 14px 14px;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
+    padding:14px 14px 24px;
   }
-
   h1{
-    margin:2px 0 0;
+    margin:6px 0 12px;
     font-size:18px;
-    line-height:1.2;
     letter-spacing:-0.02em;
   }
 
   .panel{
     border:1px solid #e2e8f0;
-    border-radius: var(--r);
+    border-radius:var(--r);
     background:#fff;
     padding:12px;
+    margin-bottom:12px;
   }
 
-  /* ===== 상단 컨트롤 ===== */
+  /* ✅ 한 줄 컨트롤: 화면이 좁으면 가로 스크롤로 “한줄 유지” */
   .controls{
-    display:grid;
-    grid-template-columns: 1fr;
+    display:flex;
+    align-items:flex-end;
     gap:10px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:2px;
   }
-  .row2{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
+  .field{
+    flex:0 0 auto;
+    min-width:160px;
   }
+  .field.small{ min-width:140px; }
+  .field.date{ min-width:150px; }
+
   .label{
     font-size:12px;
     color:var(--muted);
@@ -91,115 +76,32 @@
     border-color:var(--sky);
     box-shadow:0 0 0 3px rgba(56,163,255,0.18);
   }
-  .btn{
-    height:42px;
-    width:100%;
-    border:none;
-    border-radius:12px;
-    background:var(--sky);
-    color:#fff;
-    font-weight:1000;
-    cursor:pointer;
-  }
-  .btn:active{ transform: translateY(1px); }
-
-  .help{
-    margin-top:8px;
-    font-size:12px;
-    color:var(--muted);
-    font-weight:800;
-    line-height:1.35;
-  }
-
-  /* ===== 메인 콘텐츠(그래프+카드) ===== */
-  .main{
-    flex:1;
-    min-height:0;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-  }
 
   .status{
     font-size:12px;
     color:var(--muted);
     font-weight:900;
-  }
-
-  /* 그래프: 탭 + 지표 */
-  .chartHead{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    margin-bottom:10px;
-  }
-  .tabs{
-    display:flex;
-    gap:8px;
-  }
-  .tab{
-    border:1px solid #e2e8f0;
-    background:#fff;
-    color:var(--text);
-    height:34px;
-    padding:0 12px;
-    border-radius:999px;
-    font-weight:1000;
-    font-size:12px;
-    cursor:pointer;
-  }
-  .tab.on{
-    border-color:rgba(56,163,255,0.35);
-    background:rgba(56,163,255,0.10);
-    color:#0b4aa6;
-  }
-  .metric{
-    height:34px;
-    border-radius:999px;
-    font-size:12px;
-    font-weight:1000;
-    padding:0 10px;
+    margin-top:8px;
   }
 
   .svgBox{
     border:1px solid #e2e8f0;
     border-radius:14px;
     background:#fff;
-    padding:8px;
+    padding:10px;
   }
-  .legend{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-top:8px;
-    font-size:12px;
-    color:var(--muted);
-    font-weight:900;
-  }
-  .dot{
-    width:10px;height:10px;border-radius:99px;display:inline-block;vertical-align:middle;margin-right:6px;
-    background: var(--sky);
-  }
-  .dot.gray{ background:#94a3b8; }
 
-  /* 카드: 기본 2x2만 보여주고 더보기 */
-  .cardsWrap{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-  }
   .cards{
     display:grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0,1fr));
     gap:10px;
+    margin-top:12px;
   }
   .card{
     border:2px solid var(--line);
     border-radius:16px;
-    padding:12px 12px;
-    background:#fff;
-    min-height:92px;
+    padding:12px;
+    min-height:96px;
     display:flex;
     flex-direction:column;
     justify-content:space-between;
@@ -213,149 +115,86 @@
     font-size:26px;
     font-weight:1100;
     letter-spacing:-0.02em;
-    color:var(--text);
   }
 
-  .moreBtn{
-    height:38px;
-    border-radius:12px;
-    border:1px solid rgba(56,163,255,0.35);
-    background:rgba(56,163,255,0.10);
-    color:#0b4aa6;
-    font-weight:1000;
-    cursor:pointer;
-  }
-  .moreBtn:active{ transform: translateY(1px); }
-
-  /* ✅ “한 화면”이 목적이라 main 내부만 필요시 스크롤 */
-  .scrollArea{
-    flex:1;
-    min-height:0;
-    overflow:auto;
-    -webkit-overflow-scrolling:touch;
-    padding-bottom: 6px;
-  }
-
-  /* 모바일에서 날짜 겹침 방지: 좁으면 1열 */
-  @media (max-width:390px){
-    .row2{ grid-template-columns:1fr; }
-  }
-
-  /* 데스크탑은 조금 더 여유 */
   @media (min-width:720px){
     h1{ font-size:20px; }
-    .controls{ grid-template-columns: 1fr 1fr 1fr auto; align-items:end; }
-    .controls .field:nth-child(1){ grid-column: 1 / 3; }
-    .controls .field:nth-child(2){ grid-column: 3 / 4; }
-    .controls .field:nth-child(3){ grid-column: 4 / 5; }
-    .controls .applyWrap{ grid-column: 1 / 5; }
-    .btn{ width: 220px; }
-    .row2{ grid-template-columns:1fr 1fr; }
     .cards{ grid-template-columns: repeat(4, minmax(0,1fr)); }
   }
 </style>
 </head>
-
 <body>
-<div class="page">
-  <div class="wrap">
-    <h1>한빔한복 지점별 광고유입 리포트</h1>
+<div class="wrap">
+  <h1>한빔한복 지점별 광고유입 리포트</h1>
 
-    <div class="panel">
-      <div class="controls">
-        <div class="field">
-          <div class="label">지점 선택</div>
-          <select id="branch">
-            <option value="ALL">전체 지점(합산)</option>
-          </select>
-        </div>
+  <div class="panel">
+    <div class="controls">
+      <div class="field">
+        <div class="label">지점</div>
+        <select id="branch">
+          <option value="ALL">전체 지점(합산)</option>
+        </select>
+      </div>
 
-        <div class="row2">
-          <div class="field">
-            <div class="label">시작일</div>
-            <input id="start" type="date">
-          </div>
-          <div class="field">
-            <div class="label">종료일</div>
-            <input id="end" type="date">
-          </div>
-        </div>
+      <div class="field small">
+        <div class="label">추이</div>
+        <select id="trend">
+          <option value="daily">날짜별 추이</option>
+          <option value="monthly">월별 추이</option>
+        </select>
+      </div>
 
-        <div class="applyWrap">
-          <button class="btn" id="apply">조회하기</button>
-          <div class="help">* 기본은 “전체 지점 합산”입니다. 기간을 지정하면 해당 기간만 집계됩니다.</div>
-        </div>
+      <div class="field small">
+        <div class="label">지표</div>
+        <select id="metric">
+          <option value="visits">방문(visit)</option>
+          <option value="call">전화 클릭</option>
+          <option value="reserve">예약 클릭</option>
+          <option value="more">더 알아보기</option>
+          <option value="kakao_pending">카톡(준비중)</option>
+        </select>
+      </div>
+
+      <div class="field date">
+        <div class="label">시작일</div>
+        <input id="start" type="date">
+      </div>
+
+      <div class="field date">
+        <div class="label">종료일</div>
+        <input id="end" type="date">
       </div>
     </div>
 
-    <div class="main">
-      <div class="status" id="status">불러오는 중…</div>
+    <div class="status" id="status">불러오는 중…</div>
+  </div>
 
-      <!-- ✅ 내부 스크롤 영역(필요할 때만) -->
-      <div class="scrollArea">
-
-        <div class="panel">
-          <div class="chartHead">
-            <div class="tabs">
-              <button class="tab on" id="tabDaily" type="button">날짜별</button>
-              <button class="tab" id="tabMonthly" type="button">월별</button>
-            </div>
-
-            <select id="metric" class="metric" aria-label="지표 선택">
-              <option value="visits">방문(visit)</option>
-              <option value="call">전화 클릭</option>
-              <option value="reserve">예약 클릭</option>
-              <option value="more">더 알아보기 클릭</option>
-              <option value="kakao_pending">카톡 클릭(준비중)</option>
-            </select>
-          </div>
-
-          <div class="svgBox" id="chartBox"></div>
-
-          <div class="legend">
-            <span><span class="dot"></span>선택 지표</span>
-            <span><span class="dot gray"></span>방문(참고)</span>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="cardsWrap">
-            <div class="cards" id="cards"></div>
-            <button class="moreBtn" id="toggleMore" type="button">카드 더보기</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
+  <div class="panel">
+    <div class="svgBox" id="chartBox"></div>
+    <div class="cards" id="cards"></div>
   </div>
 </div>
 
 <script>
-/*** ✅ 너 GAS URL 그대로 ***/
+/*** ✅ GAS WebApp URL ***/
 const API = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
 
-/*** ✅ 여기만 너가 GAS Script Properties의 REPORT_TOKEN과 동일하게 넣어줘 ***/
-const REPORT_TOKEN = "여기에_REPORT_TOKEN_입력";
+/*** ✅ REPORT_TOKEN: GAS Script Properties의 REPORT_TOKEN과 동일해야 함
+ *  - 귀찮으면 여기 문자열을 바꾸고, GAS에도 똑같이 넣어.
+ */
+const REPORT_TOKEN = "hb_report_2026"; // ← 너가 실제로 설정한 값으로 맞춰
 
 const elBranch = document.getElementById('branch');
+const elTrend  = document.getElementById('trend');
+const elMetric = document.getElementById('metric');
 const elStart  = document.getElementById('start');
 const elEnd    = document.getElementById('end');
-const elApply  = document.getElementById('apply');
 const elStatus = document.getElementById('status');
-
-const elChartBox = document.getElementById('chartBox');
-const elCards = document.getElementById('cards');
-
-const tabDaily = document.getElementById('tabDaily');
-const tabMonthly = document.getElementById('tabMonthly');
-const elMetric = document.getElementById('metric');
-
-const toggleMore = document.getElementById('toggleMore');
+const elChart  = document.getElementById('chartBox');
+const elCards  = document.getElementById('cards');
 
 let lastData = null;
-let viewMode = 'daily'; // daily | monthly
-let showAllCards = false;
+let debounceTimer = null;
 
 function yyyyMmDd(d){
   const pad = n => String(n).padStart(2,'0');
@@ -374,10 +213,32 @@ function qs(params){
     .join('&');
 }
 
+/* ✅ JSONP 로드 (CORS 해결) */
+function jsonp(url){
+  return new Promise((resolve, reject)=>{
+    const cb = 'HB_CB_' + Math.random().toString(16).slice(2);
+    const s = document.createElement('script');
+    const cleanup = ()=>{
+      try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
+      if(s && s.parentNode) s.parentNode.removeChild(s);
+    };
+    window[cb] = (data)=>{
+      cleanup();
+      resolve(data);
+    };
+    s.onerror = ()=>{
+      cleanup();
+      reject(new Error('jsonp_load_failed'));
+    };
+    s.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cb;
+    document.body.appendChild(s);
+  });
+}
+
 async function fetchReport(){
   const branch = elBranch.value || 'ALL';
-  const start = elStart.value;
-  const end = elEnd.value;
+  const start  = elStart.value;
+  const end    = elEnd.value;
 
   elStatus.textContent = '불러오는 중…';
 
@@ -389,124 +250,127 @@ async function fetchReport(){
     end
   });
 
-  const res = await fetch(url, { method:'GET' });
-  const json = await res.json();
+  try{
+    const json = await jsonp(url);
 
-  if (!json.ok){
-    elStatus.textContent = `오류: ${json.error || 'unknown'} (토큰/권한 확인)`;
-    return;
+    if(!json || !json.ok){
+      elStatus.textContent = `조회 실패: ${json?.error || 'unknown'} (토큰/스프레드시트ID 확인)`;
+      lastData = null;
+      renderEmpty();
+      return;
+    }
+
+    lastData = json;
+
+    // 지점 리스트 1회 채우기
+    if (elBranch.options.length <= 1 && Array.isArray(json.branches)){
+      json.branches.forEach(b=>{
+        const opt = document.createElement('option');
+        opt.value = b;
+        opt.textContent = b;
+        elBranch.appendChild(opt);
+      });
+    }
+
+    elStatus.textContent = `${json.start} ~ ${json.end} / ${json.branch === 'ALL' ? '전체 지점(합산)' : json.branch}`;
+    render();
+
+  }catch(err){
+    elStatus.textContent = `조회 실패: 네트워크/JSONP 오류 (${String(err.message||err)})`;
+    lastData = null;
+    renderEmpty();
   }
-
-  lastData = json;
-  elStatus.textContent = `${json.start} ~ ${json.end} / ${json.branch === 'ALL' ? '전체 지점(합산)' : json.branch}`;
-
-  // 지점 리스트 최초 1회 세팅
-  if (elBranch.options.length <= 1 && Array.isArray(json.branches)){
-    json.branches.forEach(b=>{
-      const opt = document.createElement('option');
-      opt.value = b;
-      opt.textContent = b;
-      elBranch.appendChild(opt);
-    });
-  }
-
-  render();
 }
 
-function svgSingleSeries({labels, series, refSeries=null, height=170}){
-  const w = 620;
-  const h = height;
-  const padL = 34, padR = 10, padT = 12, padB = 26;
+/* ✅ 0이어도 “틀(그리드/축)”은 항상 보이게 */
+function svgLine({labels, series, height=190}){
+  const w=680, h=height;
+  const padL=34, padR=12, padT=12, padB=28;
 
-  const maxVal = Math.max(1, ...(series||[]), ...(refSeries||[]));
-  const n = labels.length || 1;
+  const n = Math.max(1, labels.length);
+  const maxVal = Math.max(1, ...series.map(v=>Number(v||0))); // 0이어도 최소 1
   const xStep = (w - padL - padR) / Math.max(1, n-1);
 
   const x = i => padL + xStep*i;
-  const y = v => padT + (h - padT - padB) * (1 - (v / maxVal));
+  const y = v => padT + (h - padT - padB) * (1 - (Number(v||0) / maxVal));
 
-  const path = (arr) => arr.map((v,i)=> `${i===0?'M':'L'} ${x(i).toFixed(2)} ${y(v).toFixed(2)}`).join(' ');
+  const path = series.map((v,i)=> `${i===0?'M':'L'} ${x(i).toFixed(2)} ${y(v).toFixed(2)}`).join(' ');
 
-  const gridY = [0.25,0.5,0.75].map(t => (padT + (h-padT-padB)*t));
-  const labelIdx = n <= 6 ? [...Array(n).keys()] : [0, Math.floor((n-1)/3), Math.floor((n-1)*2/3), n-1];
+  const gridY = [0,0.25,0.5,0.75,1].map(t => padT + (h-padT-padB)*t);
+
+  // 라벨은 너무 많으면 4개만
+  const labelIdx = n<=6 ? [...Array(n).keys()] : [0, Math.floor((n-1)/3), Math.floor((n-1)*2/3), n-1];
 
   return `
   <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" aria-hidden="true">
     ${gridY.map(gy=>`<line x1="${padL}" y1="${gy}" x2="${w-padR}" y2="${gy}" stroke="#e2e8f0" stroke-width="1"/>`).join('')}
-    ${refSeries ? `<path d="${path(refSeries)}" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>` : ``}
-    <path d="${path(series)}" fill="none" stroke="#38a3ff" stroke-width="3" stroke-linecap="round"/>
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h-padB}" stroke="#cbd5e1" stroke-width="1"/>
+    <line x1="${padL}" y1="${h-padB}" x2="${w-padR}" y2="${h-padB}" stroke="#cbd5e1" stroke-width="1"/>
+
+    <path d="${path}" fill="none" stroke="#38a3ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
     ${labelIdx.map(i=>`
-      <text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="11" fill="#64748b" font-weight="800">
+      <text x="${x(i)}" y="${h-8}" text-anchor="middle" font-size="11" fill="#64748b" font-weight="900">
         ${labels[i] || ''}
       </text>
     `).join('')}
-    <text x="${padL}" y="12" text-anchor="start" font-size="11" fill="#94a3b8" font-weight="800">max ${maxVal}</text>
+    <text x="${padL}" y="12" text-anchor="start" font-size="11" fill="#94a3b8" font-weight="900">max ${maxVal}</text>
   </svg>`;
 }
 
 function render(){
-  if(!lastData) return;
+  if(!lastData){ renderEmpty(); return; }
 
-  const src = viewMode === 'daily' ? lastData.daily : lastData.monthly;
-  const labels = src.labels;
+  const mode = elTrend.value;     // daily / monthly
+  const metric = elMetric.value;  // visits/call/...
 
-  const metricKey = elMetric.value;
-  const series = (src[metricKey] || []).map(n=>Number(n||0));
-  const visitsRef = (src.visits || []).map(n=>Number(n||0)); // 참고선
+  const src = (mode === 'monthly') ? lastData.monthly : lastData.daily;
 
-  elChartBox.innerHTML = svgSingleSeries({
-    labels,
-    series,
-    refSeries: metricKey === 'visits' ? null : visitsRef,
-    height: 175
-  });
+  const labels = src.labels || [];
+  const series = (src[metric] || []).map(v=>Number(v||0));
 
-  renderCards(lastData.totals);
-}
+  elChart.innerHTML = svgLine({ labels, series, height:190 });
 
-function renderCards(t){
-  const cardsAll = [
-    {title:'총 방문', value: t.visits},
-    {title:'전화 클릭', value: t.call},
-    {title:'예약 클릭', value: t.reserve},
-    {title:'더 알아보기 클릭', value: t.more},
-    {title:'카톡 클릭(준비중)', value: t.kakao_pending},
-    {title:'클릭 합계', value: t.clicks},
-    {title:'모바일', value: t.mobile},
-    {title:'PC', value: t.pc},
+  const t = lastData.totals || {};
+  const cards = [
+    {title:'총 방문', value:t.visits},
+    {title:'전화 클릭', value:t.call},
+    {title:'예약 클릭', value:t.reserve},
+    {title:'더 알아보기', value:t.more},
+    {title:'카톡(준비중)', value:t.kakao_pending},
+    {title:'클릭 합계', value:t.clicks},
+    {title:'모바일', value:t.mobile},
+    {title:'PC', value:t.pc},
   ];
-
-  const list = showAllCards ? cardsAll : cardsAll.slice(0,4);
-  elCards.innerHTML = list.map(c=>`
+  elCards.innerHTML = cards.map(c=>`
     <div class="card">
       <div class="t">${c.title}</div>
       <div class="v">${Number(c.value||0).toLocaleString()}</div>
     </div>
   `).join('');
-
-  toggleMore.textContent = showAllCards ? '카드 접기' : '카드 더보기';
 }
 
-tabDaily.addEventListener('click', ()=>{
-  viewMode='daily';
-  tabDaily.classList.add('on');
-  tabMonthly.classList.remove('on');
-  render();
-});
-tabMonthly.addEventListener('click', ()=>{
-  viewMode='monthly';
-  tabMonthly.classList.add('on');
-  tabDaily.classList.remove('on');
-  render();
-});
-elMetric.addEventListener('change', render);
+function renderEmpty(){
+  elChart.innerHTML = svgLine({ labels:['-'], series:[0], height:190 });
+  elCards.innerHTML = `
+    <div class="card"><div class="t">총 방문</div><div class="v">0</div></div>
+    <div class="card"><div class="t">전화 클릭</div><div class="v">0</div></div>
+    <div class="card"><div class="t">예약 클릭</div><div class="v">0</div></div>
+    <div class="card"><div class="t">더 알아보기</div><div class="v">0</div></div>
+  `;
+}
 
-toggleMore.addEventListener('click', ()=>{
-  showAllCards = !showAllCards;
-  renderCards(lastData?.totals || {});
+/* ✅ 변경 즉시 자동 조회(디바운스) */
+function autoFetch(){
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(fetchReport, 250);
+}
+['change','input'].forEach(ev=>{
+  elBranch.addEventListener(ev, autoFetch);
+  elTrend.addEventListener(ev, autoFetch);
+  elMetric.addEventListener(ev, autoFetch);
+  elStart.addEventListener(ev, autoFetch);
+  elEnd.addEventListener(ev, autoFetch);
 });
-
-elApply.addEventListener('click', fetchReport);
 
 setDefaultRange();
 fetchReport();

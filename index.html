@@ -14,21 +14,29 @@
       --glass-bg: rgba(255,255,255,0.15);
       --glass-border: rgba(255,255,255,0.16);
 
-      /* ====== 하단 모듈 높이(기본) ====== */
-      --gap: 8px;
+      /* ====== 하단 모듈 높이 ====== */
       --infoH: 30px;
       --actionH: 92px;
       --branchH: 34.5px;
       --promoH: 113px;
 
-      /* hero(광고 이미지 영역) 최소 높이: "낮은 폰" 기준 */
-      --heroMinH: 260px;
+      /* ====== ✅ 간격(여기만 만지면 됨) ====== */
+      --stackPadX: 16.5px;
+      --stackPadBottom: 14px;
 
-      /* 도트 위치(히어로 하단에서 위로 몇 px) */
-      --dotsBottom: 14px;
+      --gapPromoToBranch: 4px;     /* ✅ 가격(프로모) ↔ 지점선택 간격 */
+      --gapBranchToAction: 8px;    /* 지점선택 ↔ 액션버튼 */
+      --gapActionToInfo: 8px;      /* 액션버튼 ↔ 운영사정보 */
 
-      /* 배경 오버드로우(검은바/잘림 방지 여유) */
-      --bgOver: 40px;
+      /* ====== HERO(광고 카드) 높이 제어 ====== */
+      --heroMinH: 260px;           /* 낮은 폰 기준 최소 */
+      --heroMaxH: 520px;           /* ✅ 큰 폰(갤럭시)에서 너무 커지면 여기 줄여 */
+
+      /* 도트 위치(광고 카드 하단에서 위로) */
+      --dotsBottomInHero: 14px;
+
+      /* 배경 오버드로우(검은 틈 방지 여유) */
+      --bgOver: 46px;
 
       /* iOS safe */
       --safeT: env(safe-area-inset-top);
@@ -61,7 +69,7 @@
       font-display: swap;
     }
 
-    /* ✅ iOS 주소창/하단바 변동 대응: svh + dvh 같이 사용 */
+    /* iOS 주소창/하단바 변동 대응 */
     .wrap{
       width:100vw;
       height:100vh;
@@ -86,10 +94,9 @@
       touch-action: pan-y;
     }
 
-    /* =========================================================
-       ✅ 배경 블러 레이어 (현재 광고 이미지 그대로)
-       - 검은 여백/잘림 체감 최소화
-       ========================================================= */
+    /* =========================
+       ✅ 블러 배경(현재 광고 이미지)
+       ========================= */
     .bgBlur{
       position:absolute; inset:0; z-index:0;
       overflow:hidden;
@@ -106,12 +113,11 @@
       opacity:0;
       transition: opacity .55s ease;
       filter: blur(22px) saturate(1.08) contrast(1.05);
-      transform: scale(1.08); /* 블러 가장자리 검은 틈 방지 */
+      transform: scale(1.12);
       will-change: opacity;
     }
     .bgBlur img.active{ opacity:1; }
 
-    /* 배경에 살짝 어둡게(텍스트/버튼 가독성) */
     .bgDim{
       position:absolute; inset:0; z-index:1;
       pointer-events:none;
@@ -121,10 +127,9 @@
         rgba(0,0,0,0.62) 100%);
     }
 
-    /* =========================================================
-       ✅ UI 전체 레이아웃 (모듈화)
-       - hero(광고이미지) + bottomStack(프로모/지점/액션/정보)
-       ========================================================= */
+    /* =========================
+       ✅ UI(모듈) 레이아웃
+       ========================= */
     .ui{
       position:absolute; inset:0;
       z-index:10;
@@ -132,26 +137,34 @@
       flex-direction:column;
     }
 
-    /* -------------------------
-       HERO(광고 이미지 영역)
-       ------------------------- */
+    /* =========================
+       HERO(광고 카드)
+       ========================= */
     .hero{
       position:relative;
       flex: 1 1 auto;
       min-height: var(--heroMinH);
-      overflow:hidden;
+      max-height: var(--heroMaxH); /* ✅ 갤럭시에서 너무 커지면 여기로 제한 */
       display:flex;
       align-items:center;
       justify-content:center;
-      padding: 0 14px; /* 좌우 약간 여백 */
+      padding: 12px var(--stackPadX) 8px; /* 하단 스택과 폭 맞추기 */
     }
 
-    /* ✅ 광고 이미지는 "정중앙" + cover
-       - 낮은 폰: hero가 작아서 잘리는 부분이 생기고
-       - 높은 폰: hero가 커져서 위/아래가 더 보임 (너가 원하는 방식) */
+    /* ✅ 광고 이미지를 "모듈 카드"로 크롭 */
+    .heroCard{
+      position:relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 22px;
+      overflow:hidden;
+      background: rgba(0,0,0,0.20);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.28);
+    }
+
     .heroSlides{
-      position:absolute;
-      inset:0;
+      position:absolute; inset:0;
       overflow:hidden;
     }
     .heroSlides img{
@@ -161,21 +174,20 @@
       width: calc(100% + (var(--bgOver) * 2));
       height: calc(100% + (var(--bgOver) * 2));
       object-fit: cover;
-      object-position: center;  /* ✅ 정중앙 */
+      object-position: center;    /* ✅ 정중앙 */
       opacity:0;
       transition: opacity .55s ease;
       filter: contrast(1.08) saturate(1.05);
-      transform: translate3d(0,0,0);
       will-change: opacity;
     }
     .heroSlides img.active{ opacity:1; }
 
-    /* ✅ 도트는 hero 안에 고정(하단에서 조금 띄움) */
+    /* ✅ 도트는 광고 카드 안에 고정 */
     .dots{
       position:absolute;
       left:50%;
       transform:translateX(-50%);
-      bottom: var(--dotsBottom);
+      bottom: var(--dotsBottomInHero);
       display:flex;
       gap:6px;
       pointer-events:none;
@@ -184,15 +196,14 @@
     .dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
     .dot.on{ background: rgba(255,255,255,0.95); }
 
-    /* -------------------------
+    /* =========================
        BOTTOM STACK(하단 모듈들)
-       ------------------------- */
+       ========================= */
     .bottomStack{
       flex: 0 0 auto;
-      padding: 0 16.5px 14px;
+      padding: 0 var(--stackPadX) var(--stackPadBottom);
       display:flex;
       flex-direction:column;
-      gap: var(--gap);
     }
 
     .glass{
@@ -205,7 +216,7 @@
         inset 0 1px 0 rgba(255,255,255,0.35);
     }
 
-    /* ✅ 프로모(이미지만, 패널 흔적 X) */
+    /* ✅ 프로모(이미지 모듈) */
     .promoPanel{
       height: var(--promoH);
       background: transparent !important;
@@ -217,6 +228,7 @@
       align-items:center;
       justify-content:center;
       pointer-events:none;
+      margin-bottom: var(--gapPromoToBranch); /* ✅ 간격 변수 */
     }
     .promoPanel img{
       max-width:100%;
@@ -242,6 +254,7 @@
       text-shadow: 0 1px 8px rgba(0,0,0,0.45);
       gap: 8px;
       font-family: var(--fontMain);
+      margin-bottom: var(--gapBranchToAction); /* ✅ 간격 변수 */
     }
     .branch .txt{
       font-weight:900;
@@ -263,6 +276,7 @@
       display:flex;
       align-items:flex-start;
       justify-content:center;
+      margin-bottom: var(--gapActionToInfo); /* ✅ 간격 변수 */
     }
     .btnRow{
       width:100%;
@@ -413,16 +427,16 @@
       font-family: var(--fontMain);
     }
 
-    /* =========================================================
-       ✅ 낮은 화면(iPhone SE급 등) 보정: 하단 모듈 살짝 줄임
-       - JS로도 조정 가능하지만, 여기서는 CSS fallback 제공
-       ========================================================= */
+    /* 낮은 화면 대응(필요시 더 줄이기) */
     @media (max-height: 760px){
       :root{
-        --gap: 6px;
         --promoH: 98px;
         --actionH: 88px;
         --heroMinH: 230px;
+        --heroMaxH: 440px;
+        --gapPromoToBranch: 3px;
+        --gapBranchToAction: 7px;
+        --gapActionToInfo: 7px;
       }
     }
   </style>
@@ -432,7 +446,7 @@
   <div class="wrap">
     <div class="canvas" id="canvas">
 
-      <!-- ✅ 배경 블러(현재 광고 이미지) -->
+      <!-- 블러 배경 -->
       <div class="bgBlur" aria-hidden="true" id="bgBlur">
         <img class="active" src="assets/bg1.webp" alt="">
         <img src="assets/bg2.webp" alt="">
@@ -441,22 +455,25 @@
       </div>
       <div class="bgDim" aria-hidden="true"></div>
 
-      <!-- ✅ UI 모듈 레이아웃 -->
+      <!-- UI -->
       <div class="ui" id="ui">
 
-        <!-- HERO: 광고 이미지 영역 -->
+        <!-- HERO(광고 카드) -->
         <div class="hero" id="hero">
-          <div class="heroSlides" aria-hidden="true" id="heroSlides">
-            <img class="active" src="assets/bg1.webp" alt="">
-            <img src="assets/bg2.webp" alt="">
-            <img src="assets/bg3.webp" alt="">
-            <img src="assets/bg4.webp" alt="">
-          </div>
+          <div class="heroCard" id="heroCard">
+            <div class="heroSlides" aria-hidden="true" id="heroSlides">
+              <img class="active" src="assets/bg1.webp" alt="">
+              <img src="assets/bg2.webp" alt="">
+              <img src="assets/bg3.webp" alt="">
+              <img src="assets/bg4.webp" alt="">
+            </div>
 
-          <div class="dots" id="dots" aria-hidden="true"></div>
+            <!-- 도트(광고 카드 안) -->
+            <div class="dots" id="dots" aria-hidden="true"></div>
+          </div>
         </div>
 
-        <!-- BOTTOM STACK: 이벤트/지점/액션/운영사정보 -->
+        <!-- 하단 스택 -->
         <div class="bottomStack" id="bottomStack">
 
           <div class="promoPanel" id="promoPanel" aria-label="이벤트 가격">
@@ -502,8 +519,8 @@
             광고운영사 정보 보기
           </div>
 
-        </div><!-- /bottomStack -->
-      </div><!-- /ui -->
+        </div>
+      </div>
 
       <div class="toast" id="toast">준비중입니다.</div>
 
@@ -744,16 +761,12 @@
       }
     })();
 
-    /* =========================================================
-       슬라이드(광고 이미지) + 도트 + 스와이프
-       - heroSlides(선명) + bgBlur(블러) 둘 다 동시에 전환
-       ========================================================= */
+    /* 슬라이드 + 도트 + 스와이프 (hero + blur 둘 다 전환) */
     const canvas = document.getElementById("canvas");
-
     const heroImgs = Array.from(document.querySelectorAll("#heroSlides img"));
     const blurImgs = Array.from(document.querySelectorAll("#bgBlur img"));
-
     const dotsWrap = document.getElementById("dots");
+
     let idx=0, timer=null, pausedUntil=0;
 
     function buildDots(){
@@ -772,12 +785,9 @@
     function showSlide(n){
       heroImgs[idx].classList.remove("active");
       blurImgs[idx].classList.remove("active");
-
       idx=(n+heroImgs.length)%heroImgs.length;
-
       heroImgs[idx].classList.add("active");
       blurImgs[idx].classList.add("active");
-
       setDots();
     }
 
@@ -821,12 +831,6 @@
       }
       x0=null;y0=null;moved=false;
     },{passive:true});
-
-    /* 이미지 로드 안정화(깜빡임 방지용) */
-    [...heroImgs, ...blurImgs].forEach(img=>{
-      if(img.complete) return;
-      img.addEventListener("load", ()=>{}, {once:true});
-    });
   </script>
 </body>
 </html>

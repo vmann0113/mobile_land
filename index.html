@@ -7,33 +7,72 @@
 
   <style>
     :root{
+      /* =========================
+         ✅ 1) DESIGN 기준(고정 좌표 기준)
+         ========================= */
+      --designW: 390;
+      --designH: 844;
+
+      /* =========================
+         ✅ 2) CANVAS 최대 폭
+         ========================= */
       --maxW: 520px;
 
-      /* ✅ 전체 폰트(프레젠테이션) */
+      /* =========================
+         ✅ 3) 폰트
+         ========================= */
       --fontMain: "Presentation", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
 
-      /* glass */
+      /* =========================
+         ✅ 4) Glass 스타일(기능/룩 유지)
+         ========================= */
       --glass-bg: rgba(255,255,255,0.15);
       --glass-border: rgba(255,255,255,0.16);
 
-      /* stack */
-      --gap: 3px;
+      /* =========================
+         ✅ 5) iOS Safe Area
+         ========================= */
+      --safeT: env(safe-area-inset-top);
       --safeB: env(safe-area-inset-bottom);
 
-      /* ✅ 전체를 5px 아래로 */
-      --baseBottom: 7px;
-
-      /* heights */
-      --infoH: 30px;
-      --actionH: 92px;
-      --branchH: 34.5px;
-      --promoH: 113px;
-
-      /* gap dots */
-      --gapDotsToPromo: 3px;
-
-      /* ✅ 배경 오버드로우(검은바 방지 핵심) */
+      /* =========================
+         ✅ 6) 배경 오버드로우(검은바 방지)
+         ========================= */
       --bgOver: 10px;
+
+      /* =========================
+         ✅ 7) 좌표(여기만 만지면 UI 위치 조정 끝)
+         - 단위: "디자인 px" (390x844 기준)
+         - 반응형은 자동 스케일됨
+         ========================= */
+      /* 공통: 좌우 여백/폭 */
+      --uiLeft: 16.5;     /* px */
+      --uiWidth: 357;     /* px */
+
+      /* 각 컴포넌트 좌표/크기 */
+      --yDots:   170;     /* 도트 TOP 위치(px) */
+      --yPromo:  185;     /* 프로모 TOP(px) */
+      --hPromo:  113;     /* 프로모 높이(px) */
+
+      --yBranch: 306;     /* 지점선택 TOP(px) */
+      --hBranch: 34.5;    /* 지점선택 높이 */
+
+      --yAction: 345;     /* 액션패널 TOP(px) */
+      --hAction: 92;      /* 액션패널 높이 */
+
+      --yInfo:   442;     /* infoBar TOP(px) */
+      --hInfo:   30;      /* infoBar 높이 */
+
+      /* Toast는 액션패널 기준으로 떠있게 (원래 느낌 유지) */
+      --toastOffsetFromAction: 14; /* px */
+
+      /* =========================
+         ✅ 8) 배경 포커스 기준선(px)
+         - “배경에서 이 라인이 어느 부분을 보여줄지” 기준선
+         - 기존엔 promoPanel.top 이었는데,
+         - 이제는 숫자만 조절해서 배경 높낮이를 쉽게 튜닝 가능
+         ========================= */
+      --bgTargetY: 185; /* 보통 promo top과 맞추면 동일 효과 */
     }
 
     *{ box-sizing:border-box; }
@@ -62,6 +101,9 @@
       font-display: swap;
     }
 
+    /* =========================
+       ✅ 화면 중앙에 캔버스 고정
+       ========================= */
     .wrap{
       width:100vw;
       height:100vh;
@@ -69,23 +111,28 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
+      padding-top: var(--safeT);
+      padding-bottom: var(--safeB);
     }
 
     .canvas{
       position:relative;
       width:min(100vw, var(--maxW));
       aspect-ratio:390/844;
-      max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      max-height: calc(100dvh - var(--safeT) - var(--safeB));
       border-radius:22px;
       overflow:hidden;
       background:#000;
       box-shadow: 0 20px 80px rgba(0,0,0,0.45);
       touch-action: pan-y;
+
+      /* ✅ 스케일 계산: 디자인(px) → 현재 캔버스(px) 변환 */
+      --scale: calc( (100% / var(--designW)) ); /* 390px 기준으로 환산 */
     }
 
-    /* ✅ 배경: cover + JS translateY로 포커스 고정 */
+    /* =========================
+       ✅ 배경 (기존 기능 동일)
+       ========================= */
     .bg{
       position:absolute;
       inset:0;
@@ -129,95 +176,79 @@
         inset 0 1px 0 rgba(255,255,255,0.35);
     }
 
-    /* ===== 하단 스택 ===== */
-
-    .infoBar{
+    /* =========================
+       ✅ 좌표 배치 헬퍼
+       - left/top/width/height는 디자인 px
+       - 실제 렌더링은 --scale 곱해서 자동 반응형
+       ========================= */
+    .ui{
       position:absolute;
       z-index:10;
-      left: calc(16.5 / 390 * 100%);
-      width: calc(357 / 390 * 100%);
-      height: var(--infoH);
-      bottom: calc(var(--baseBottom) + var(--safeB));
-      border-radius: 12px;
-      background: rgba(0,0,0,0.42);
-      border: 1px solid rgba(255,255,255,0.14);
-      color: rgba(255,255,255,0.92);
+      left: calc(var(--uiLeft) * var(--scale));
+      width: calc(var(--uiWidth) * var(--scale));
+    }
+
+    /* =========================
+       ✅ DOTS (좌표: --yDots)
+       ========================= */
+    .dots{
+      position:absolute;
+      z-index:10;
+      left:50%;
+      transform:translateX(-50%);
+      top: calc(var(--yDots) * var(--scale));
+      display:flex;
+      gap:6px;
+      pointer-events:none;
+    }
+    .dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
+    .dot.on{ background: rgba(255,255,255,0.95); }
+
+    /* =========================
+       ✅ PROMO (좌표: --yPromo, 높이: --hPromo)
+       - “프로모 배경 패널 제거”는 그대로 유지
+       ========================= */
+    .promoPanel{
+      top: calc(var(--yPromo) * var(--scale));
+      height: calc(var(--hPromo) * var(--scale));
+
+      /* ✅ 프로모 패널 흔적 제거 유지 */
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+
+      padding: 0;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size: 11px;
-      font-weight: 900;
-      cursor:pointer;
-      user-select:none;
-      font-family: var(--fontMain);
+      pointer-events:none;
     }
-
-    .action-panel{
-      position:absolute;
-      z-index:10;
-      left: calc(16.5 / 390 * 100%);
-      width: calc(357 / 390 * 100%);
-      height: var(--actionH);
-      bottom: calc(var(--baseBottom) + var(--safeB) + var(--infoH) + var(--gap));
-      border-radius: 22px;
-      padding: 8px 10px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:center;
-    }
-
-    .btnRow{
+    .promoOnly{
       width:100%;
+      height:100%;
       display:flex;
-      justify-content:space-between;
-      padding: 0 12px;
-      gap: 12px;
-    }
-    .btnCol{
-      width:56px;
-      display:flex;
-      flex-direction:column;
       align-items:center;
-      gap:5px;
-      flex: 0 0 auto;
+      justify-content:center;
+      pointer-events:none;
     }
-
-    .actionPng{
-      width:56px; height:56px;
-      border-radius:16px;
-      background-size:cover;
-      background-position:center;
-      background-repeat:no-repeat;
+    .promoOnly img{
+      max-width:100%;
+      max-height:100%;
+      width:auto;
+      height:auto;
+      object-fit: contain;
+      object-position:center;
       display:block;
-      cursor:pointer;
-      -webkit-tap-highlight-color: transparent;
-      text-decoration:none;
-    }
-    .actionPng:active{ transform: translateY(1px); }
-
-    .btnLabel{
-      font-size:10px;
-      font-weight:900;
-      color: rgba(255,255,255,0.88);
-      text-shadow: 0 1px 8px rgba(0,0,0,0.45);
-      letter-spacing:-0.02em;
-      line-height:1;
-      user-select:none;
-      white-space:nowrap;
-      font-family: var(--fontMain);
     }
 
+    /* =========================
+       ✅ BRANCH (좌표: --yBranch)
+       ========================= */
     .branch{
-      position:absolute;
-      z-index:10;
-      left: calc(16.5 / 390 * 100%);
-      width: calc(357 / 390 * 100%);
-      height: var(--branchH);
-      bottom: calc(
-        var(--baseBottom) + var(--safeB)
-        + var(--infoH) + var(--gap)
-        + var(--actionH) + var(--gap)
-      );
+      top: calc(var(--yBranch) * var(--scale));
+      height: calc(var(--hBranch) * var(--scale));
       border-radius: 999px;
       display:flex;
       align-items:center;
@@ -246,82 +277,87 @@
     }
     .branch svg path{ stroke: rgba(255,255,255,0.92); }
 
-    /* ✅ 프로모: "지점선택 바로 위" + 다른 요소와 동일 간격(--gap) */
-    .promoPanel{
-      position:absolute;
-      z-index:10;
-      left: calc(16.5 / 390 * 100%);
-      width: calc(357 / 390 * 100%);
-      height: var(--promoH);
-      bottom: calc(
-        var(--baseBottom) + var(--safeB)
-        + var(--infoH) + var(--gap)
-        + var(--actionH) + var(--gap)
-        + var(--branchH) + var(--gap)   /* ✅ 여기: branch 위 간격을 --gap으로 통일 */
-      );
-
-      /* ✅ 패널 흔적 완전 제거 */
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-
-      padding: 0;
+    /* =========================
+       ✅ ACTION PANEL (좌표: --yAction)
+       ========================= */
+    .action-panel{
+      top: calc(var(--yAction) * var(--scale));
+      height: calc(var(--hAction) * var(--scale));
+      border-radius: 22px;
+      padding: 8px 10px;
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:center;
-      pointer-events:none;
     }
 
-    .promoOnly{
+    .btnRow{
       width:100%;
-      height:100%;
+      display:flex;
+      justify-content:space-between;
+      padding: 0 12px;
+      gap: 12px;
+    }
+    .btnCol{
+      width:56px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:5px;
+      flex: 0 0 auto;
+    }
+    .actionPng{
+      width:56px; height:56px;
+      border-radius:16px;
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      display:block;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+      text-decoration:none;
+    }
+    .actionPng:active{ transform: translateY(1px); }
+    .btnLabel{
+      font-size:10px;
+      font-weight:900;
+      color: rgba(255,255,255,0.88);
+      text-shadow: 0 1px 8px rgba(0,0,0,0.45);
+      letter-spacing:-0.02em;
+      line-height:1;
+      user-select:none;
+      white-space:nowrap;
+      font-family: var(--fontMain);
+    }
+
+    /* =========================
+       ✅ INFO BAR (좌표: --yInfo)
+       ========================= */
+    .infoBar{
+      top: calc(var(--yInfo) * var(--scale));
+      height: calc(var(--hInfo) * var(--scale));
+      border-radius: 12px;
+      background: rgba(0,0,0,0.42);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.92);
       display:flex;
       align-items:center;
       justify-content:center;
-      pointer-events:none;
-    }
-    .promoOnly img{
-      max-width:100%;
-      max-height:100%;
-      width:auto;
-      height:auto;
-      object-fit: contain;
-      object-position:center;
-      display:block;
+      font-size: 11px;
+      font-weight: 900;
+      cursor:pointer;
+      user-select:none;
+      font-family: var(--fontMain);
     }
 
-    /* ✅ 도트: 프로모 위 */
-    .dots{
-      position:absolute;
-      z-index:10;
-      left:50%;
-      transform:translateX(-50%);
-      bottom: calc(
-        var(--baseBottom) + var(--safeB)
-        + var(--infoH) + var(--gap)
-        + var(--actionH) + var(--gap)
-        + var(--branchH) + var(--gap)
-        + var(--promoH) + var(--gapDotsToPromo)
-      );
-      display:flex;
-      gap:6px;
-      pointer-events:none;
-    }
-    .dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
-    .dot.on{ background: rgba(255,255,255,0.95); }
-
+    /* =========================
+       ✅ TOAST (액션패널 기준으로 떠있는 느낌 유지)
+       ========================= */
     .toast{
       position:absolute;
       left:50%;
       transform:translateX(-50%);
       z-index: 30;
-      bottom: calc(
-        var(--baseBottom) + var(--safeB)
-        + var(--infoH) + var(--gap)
-        + var(--actionH) + 14px
-      );
+      top: calc( (var(--yAction) + var(--hAction) + var(--toastOffsetFromAction)) * var(--scale) );
       padding: 10px 14px;
       border-radius: 999px;
       background: rgba(0,0,0,0.75);
@@ -339,7 +375,9 @@
       transform: translateX(-50%) translateY(-2px);
     }
 
-    /* 모달 */
+    /* =========================
+       ✅ MODAL (기능 그대로)
+       ========================= */
     .modal-backdrop{
       position:absolute; inset:0; z-index:50;
       display:none; align-items:flex-end; justify-content:center;
@@ -416,6 +454,9 @@
   <div class="wrap">
     <div class="canvas" id="canvas">
 
+      <!-- =========================
+           배경 슬라이드(기능 그대로)
+           ========================= -->
       <div class="bg" aria-hidden="true">
         <img class="active" src="assets/bg1.webp" alt="">
         <img src="assets/bg2.webp" alt="">
@@ -424,23 +465,26 @@
       </div>
       <div class="overlay" aria-hidden="true"></div>
 
+      <!-- ✅ 도트(좌표 배치) -->
       <div class="dots" id="dots" aria-hidden="true"></div>
 
-      <!-- ✅ 프로모: 패널 흔적 0, 이미지 1장 -->
-      <div class="promoPanel" id="promoPanel" aria-label="이벤트 가격">
+      <!-- ✅ 프로모(좌표 배치) -->
+      <div class="promoPanel ui" id="promoPanel" aria-label="이벤트 가격">
         <div class="promoOnly" aria-hidden="true">
           <img id="promoImg" src="assets/promo.webp" alt="">
         </div>
       </div>
 
-      <div class="branch glass" id="openBranch" role="button" tabindex="0">
+      <!-- ✅ 지점선택(좌표 배치) -->
+      <div class="branch glass ui" id="openBranch" role="button" tabindex="0">
         <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
 
-      <div class="action-panel glass">
+      <!-- ✅ 액션패널(좌표 배치) -->
+      <div class="action-panel glass ui">
         <div class="btnRow">
           <div class="btnCol">
             <a class="actionPng" id="btnCall" href="#"
@@ -468,13 +512,17 @@
         </div>
       </div>
 
-      <div class="infoBar" id="openBiz" role="button" tabindex="0">
+      <!-- ✅ 사업자정보 버튼(좌표 배치) -->
+      <div class="infoBar ui" id="openBiz" role="button" tabindex="0">
         광고운영사 정보 보기
       </div>
 
+      <!-- ✅ 토스트 -->
       <div class="toast" id="toast">준비중입니다.</div>
 
-      <!-- 지점 선택 모달 -->
+      <!-- =========================
+           모달(기능 그대로)
+           ========================= -->
       <div class="modal-backdrop" id="branchBackdrop" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
           <div class="modalHead">
@@ -485,7 +533,6 @@
         </div>
       </div>
 
-      <!-- 사업자정보 모달 -->
       <div class="modal-backdrop" id="bizBackdrop" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-label="광고운영사 정보">
           <div class="modalHead">
@@ -510,6 +557,11 @@
   </div>
 
   <script>
+    /* =========================================================
+       ✅ (기능) 로그/슬라이드/스와이프/모달/버튼: 원본 로직 유지
+       ✅ (변경) 배경 포커스 targetY만 "좌표 변수(--bgTargetY)"로 계산
+       ========================================================= */
+
     const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
     const SLIDE_INTERVAL_MS = 5500;
 
@@ -712,7 +764,8 @@
     })();
 
     /* =========================
-       ✅ 배경 포커스: "프로모의 바로 위 라인"에 refY 정렬
+       ✅ 배경 포커스(기능 유지)
+       - targetY만 CSS 변수(--bgTargetY)로 설정
        ========================= */
     const DESIGN_REF_Y_RATIO = 1168 / 1688;
 
@@ -722,10 +775,15 @@
       return Number.isFinite(n) ? n : 24;
     }
 
+    function getCssNumber(varName, fallback){
+      const v = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
     function applyBgFocusFixed(){
       const canvas = document.getElementById("canvas");
-      const promo  = document.getElementById("promoPanel");
-      if(!canvas || !promo) return;
+      if(!canvas) return;
 
       const ch = canvas.clientHeight;
       const cw = canvas.clientWidth;
@@ -733,8 +791,12 @@
 
       const over = getBgOver();
 
-      /* ✅ 목표 라인: promoPanel의 top(=프로모 바로 위 라인) */
-      const targetY = promo.offsetTop;
+      /* ✅ 목표 라인: 이제 "좌표 변수(--bgTargetY)" 기반 */
+      const bgTargetY_designPx = getCssNumber("--bgTargetY", 185);
+
+      /* 디자인 px → 실제 px 변환: (현재 canvas 폭 / 390) */
+      const scale = cw / 390;
+      const targetY = bgTargetY_designPx * scale;
 
       const active = document.querySelector(".bg img.active");
       if(!active) return;
@@ -746,12 +808,12 @@
       const boxW = cw + over * 2;
       const boxH = ch + over * 2;
 
-      const scale = Math.max(boxW / iw, boxH / ih);
-      const dispH = ih * scale;
+      const imgScale = Math.max(boxW / iw, boxH / ih);
+      const dispH = ih * imgScale;
 
       const refY = dispH * DESIGN_REF_Y_RATIO;
 
-      /* shift + refY = targetY + over  */
+      /* shift + refY = targetY + over */
       let shift = (targetY + over) - refY;
 
       const minShift = (ch + over) - dispH;
@@ -781,7 +843,7 @@
       p.addEventListener("load", ()=> setTimeout(applyBgFocusStabilized, 60), {once:true});
     })();
 
-    /* 슬라이드 + 도트 + 스와이프 */
+    /* 슬라이드 + 도트 + 스와이프 (기능 그대로) */
     const canvas=document.getElementById("canvas");
     const slides=Array.from(document.querySelectorAll(".bg img"));
     const dotsWrap=document.getElementById("dots");

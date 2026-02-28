@@ -8,8 +8,10 @@
   <style>
     :root{
       --maxW: 520px;
-      --glass-bg: rgba(255,255,255,0.18);   /* 더 투명 */
-      --glass-border: rgba(255,255,255,0.18);
+
+      /* glass (조금 더 투명) */
+      --glass-bg: rgba(255,255,255,0.15);
+      --glass-border: rgba(255,255,255,0.16);
 
       /* 하단 스택(아래부터 5px 간격) */
       --gap: 5px;
@@ -18,7 +20,15 @@
       --infoH: 42px;
       --actionH: 107px;
       --branchH: 34.5px;
-      --dotsH: 10px; /* 도트 영역(대략) */
+      --dotsH: 10px;
+
+      /* promo(가격 카드 패널) 높이 */
+      --promoH: 92px;
+
+      /* Hanbeam wine */
+      --wine: #6f2d2d;
+      --wine-deep: #5a2323;
+      --wine-lite: #8a3a3a;
     }
 
     *{ box-sizing:border-box; }
@@ -49,69 +59,40 @@
       max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       border-radius:22px;
       overflow:hidden;
-
-      /* 레터박스/블러 배경이 흰색으로 뜨지 않게 기본은 아주 옅은 그라데이션 */
-      background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 55%, #ffffff 100%);
-
+      background:#000;
       box-shadow: 0 20px 80px rgba(0,0,0,0.45);
       touch-action: pan-y;
     }
 
-    /* ✅ 배경(옵션 C 최적화): blurred cover + main contain (잘림 0) */
+    /* ✅ 배경: 자르지 않음(상단 기준점) */
     .bg{
       position:absolute;
       inset:0;
       z-index:0;
       overflow:hidden;
-      background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 55%, #ffffff 100%);
     }
-
-    .bgSlide{
-      position:absolute;
-      inset:0;
-      opacity:0;
-      transition: opacity .6s ease;
-      will-change: opacity;
-    }
-    .bgSlide.active{ opacity:1; }
-
-    /* 블러 레이어(경량화) - cover로 꽉 채워 여백을 자연스럽게 메움 */
-    .bgSlide .blur{
-      position:absolute;
-      inset:-10%;
-      width:120%;
-      height:120%;
-      object-fit: cover;     /* 블러는 잘려도 OK */
-      object-position: center;
-      transform: scale(1.04); /* ✅ 경량화: 과한 확대 X */
-      filter: blur(12px) saturate(1.05); /* ✅ 경량화: blur 12px */
-      opacity: 0.88;
-      will-change: transform;
-      /* 블러는 opacity 애니메이션 안 함(부담 ↓) */
-    }
-
-    /* 본 이미지 - 절대 잘리지 않음 */
-    .bgSlide .main{
+    .bg img{
       position:absolute;
       inset:0;
       width:100%;
       height:100%;
-      object-fit: contain;   /* ✅ 핵심 */
-      object-position: center;
-      filter: contrast(1.08) saturate(1.05)
-              drop-shadow(0 10px 30px rgba(0,0,0,0.12)); /* 살짝 떠보이게 */
-      background: transparent;
+      object-fit: cover;
+      object-position: top center;
+      opacity:0;
+      transition: opacity .6s ease;
+      filter: contrast(1.08) saturate(1.05);
       transform: translateZ(0);
       will-change: opacity;
     }
+    .bg img.active{ opacity:1; }
 
     /* ✅ 클릭 막지 않게 반드시 필요 */
     .overlay{
       position:absolute; inset:0; z-index:1;
-      pointer-events:none; /* 🔥 이거 없으면 버튼 다 죽음 */
+      pointer-events:none;
       background: linear-gradient(to bottom,
-        rgba(0,0,0,0.00) 42%,
-        rgba(0,0,0,0.58) 100%);
+        rgba(0,0,0,0.00) 38%,
+        rgba(0,0,0,0.62) 100%);
     }
 
     .glass{
@@ -125,7 +106,7 @@
     }
 
     /* ===== 하단 스택(아래에서부터 쌓기) =====
-       infoBar(bottom) -> actionPanel -> branch -> dots
+       infoBar(bottom) -> actionPanel -> branch -> promo -> dots
        간격은 모두 5px
     */
 
@@ -244,7 +225,126 @@
     }
     .branch svg path{ stroke: rgba(255,255,255,0.92); }
 
-    /* 도트 */
+    /* ===== 프로모(가격) 패널: 도트 아래 / 지점 선택 위 ===== */
+    .promoPanel{
+      position:absolute;
+      z-index:10;
+      left: calc(16.5 / 390 * 100%);
+      width: calc(357 / 390 * 100%);
+      height: var(--promoH);
+
+      bottom: calc(
+        12px + var(--safeB)
+        + var(--infoH) + var(--gap)
+        + var(--actionH) + var(--gap)
+        + var(--branchH) + var(--gap)
+        + var(--dotsH) + var(--gap)
+      );
+
+      border-radius: 22px;
+      padding: 10px;
+      display:flex;
+      align-items:center;
+    }
+
+    .promoRow{
+      width:100%;
+      display:flex;
+      gap:10px;
+    }
+
+    .promoCard{
+      flex:1 1 0;
+      height: calc(var(--promoH) - 20px);
+      border-radius: 16px;
+      overflow:hidden;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow:
+        0 10px 22px rgba(0,0,0,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.32);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+
+    /* 고급 와인 헤더(그라데이션 + 하이라이트) */
+    .promoHead{
+      height: 28px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 1000;
+      font-size: 12px;
+      color: rgba(255,255,255,0.96);
+      letter-spacing: -0.02em;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 45%),
+        linear-gradient(180deg, var(--wine-lite) 0%, var(--wine) 55%, var(--wine-deep) 100%);
+    }
+
+    .promoBody{
+      flex:1;
+      padding: 6px 10px 9px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:10px;
+      background: rgba(255,255,255,0.86);
+    }
+
+    .promoLeft{
+      display:flex;
+      align-items:flex-end;
+      gap:6px;
+      min-width: 0;
+    }
+
+    /* 원가(취소선) - 이미지 느낌에 가깝게(두께/색) */
+    .promoWas{
+      font-size: 12px;
+      font-weight: 900;
+      color: rgba(15,23,42,0.58);
+      text-decoration: line-through;
+      text-decoration-color: rgba(15,23,42,0.58);
+      text-decoration-thickness: 2.4px;
+      text-underline-offset: 2px;
+      white-space:nowrap;
+      letter-spacing: -0.02em;
+    }
+
+    .promoArrow{
+      font-size: 12px;
+      font-weight: 1100;
+      color: rgba(111,45,45,0.78);
+      margin: 0 4px;
+      white-space:nowrap;
+    }
+
+    .promoNow{
+      display:flex;
+      align-items:flex-end;
+      gap:2px;
+      white-space:nowrap;
+    }
+
+    /* 숫자 타이포: 굵고 자간 좁게(이미지 느낌) */
+    .promoNow .num{
+      font-size: 24px;
+      font-weight: 1100;
+      color: rgba(111,45,45,0.98);
+      letter-spacing: -0.05em;
+      line-height: 0.98;
+    }
+    .promoNow .unit{
+      font-size: 13px;
+      font-weight: 1000;
+      color: rgba(15,23,42,0.78);
+      padding-bottom: 1px;
+      letter-spacing: -0.02em;
+    }
+
+    /* 도트 (프로모 패널 위) */
     .dots{
       position:absolute;
       z-index:10;
@@ -255,6 +355,7 @@
         + var(--infoH) + var(--gap)
         + var(--actionH) + var(--gap)
         + var(--branchH) + var(--gap)
+        + var(--promoH) + var(--gap)
       );
       display:flex;
       gap:6px;
@@ -360,6 +461,13 @@
       color: rgba(15,23,42,0.82);
       white-space: pre-line;
     }
+
+    /* 작은 화면 보정 */
+    @media (max-width: 360px){
+      :root{ --promoH: 88px; }
+      .promoHead{ font-size: 11px; }
+      .promoNow .num{ font-size: 22px; }
+    }
   </style>
 </head>
 
@@ -367,29 +475,46 @@
   <div class="wrap">
     <div class="canvas" id="canvas">
 
-      <!-- ✅ 옵션 C(경량화) 구조: 슬라이드 컨테이너 + (blur cover, main contain) -->
       <div class="bg" aria-hidden="true">
-        <div class="bgSlide active">
-          <img class="blur" src="assets/bg1.webp" alt="">
-          <img class="main" src="assets/bg1.webp" alt="">
-        </div>
-        <div class="bgSlide">
-          <img class="blur" src="assets/bg2.webp" alt="">
-          <img class="main" src="assets/bg2.webp" alt="">
-        </div>
-        <div class="bgSlide">
-          <img class="blur" src="assets/bg3.webp" alt="">
-          <img class="main" src="assets/bg3.webp" alt="">
-        </div>
-        <div class="bgSlide">
-          <img class="blur" src="assets/bg4.webp" alt="">
-          <img class="main" src="assets/bg4.webp" alt="">
-        </div>
+        <img class="active" src="assets/bg1.webp" alt="">
+        <img src="assets/bg2.webp" alt="">
+        <img src="assets/bg3.webp" alt="">
+        <img src="assets/bg4.webp" alt="">
       </div>
-
       <div class="overlay" aria-hidden="true"></div>
 
       <div class="dots" id="dots" aria-hidden="true"></div>
+
+      <!-- ✅ 프로모(가격) 패널: 도트 아래 / 지점 선택 위 -->
+      <div class="promoPanel glass" id="promoPanel" aria-label="이벤트 가격">
+        <div class="promoRow">
+          <div class="promoCard" id="promoA">
+            <div class="promoHead" id="promoATitle">웨딩 촬영용 한복대여</div>
+            <div class="promoBody">
+              <div class="promoLeft">
+                <span class="promoWas" id="promoAWas">20만원</span>
+                <span class="promoArrow">›</span>
+              </div>
+              <div class="promoNow">
+                <span class="num" id="promoANow">11</span><span class="unit">만원</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="promoCard" id="promoB">
+            <div class="promoHead" id="promoBTitle">결혼식 한복대여</div>
+            <div class="promoBody">
+              <div class="promoLeft">
+                <span class="promoWas" id="promoBWas">33만원</span>
+                <span class="promoArrow">›</span>
+              </div>
+              <div class="promoNow">
+                <span class="num" id="promoBNow">25</span><span class="unit">만원</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="branch glass" id="openBranch" role="button" tabindex="0">
         <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
@@ -475,17 +600,17 @@
     const SLIDE_INTERVAL_MS = 5500;
 
     const BRANCHES = [
-      { name:"부산점",     phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812" },
-      { name:"부산센텀점", phone:"010-3052-2325", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
-      { name:"김해점",     phone:"010.8065.2325", reserve:"https://booking.naver.com/booking/6/bizes/1402679" },
-      { name:"창원점",     phone:"055.263.2325", reserve:"https://booking.naver.com/booking/6/bizes/843111" },
-      { name:"양산점",     phone:"055.912.0425", reserve:"https://booking.naver.com/booking/13/bizes/868629" },
-      { name:"진주점",     phone:"010.5654.2407", reserve:"https://m.booking.naver.com/booking/6/bizes/1485854" },
-      { name:"인천점",     phone:"032.283.2325", reserve:"https://m.booking.naver.com/booking/13/bizes/1039475" },
-      { name:"안산점",     phone:"010.6591.2322", reserve:"https://m.booking.naver.com/booking/6/bizes/1500008" },
-      { name:"마산점",     phone:"010.8832.2325", reserve:"https://booking.naver.com/booking/6/bizes/1526541" },
-      { name:"울산점",     phone:"010.9807.2325", reserve:"https://booking.naver.com/booking/6/bizes/1534767" },
-      { name:"대구점",     phone:"010-8492-2328", reserve:"https://m.place.naver.com/place/2043617700/ticket?entry=pll&bk_query=%ED%95%9C%EB%B9%94%ED%95%9C%EB%B3%B5" }
+      { name:"부산점",     phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812",  kakao:"https://open.kakao.com/o/soq7Ns4d" },
+      { name:"부산센텀점", phone:"010-3052-2325", reserve:"https://booking.naver.com/booking/13/bizes/868629", kakao:null },
+      { name:"김해점",     phone:"010.8065.2325", reserve:"https://booking.naver.com/booking/6/bizes/1402679", kakao:"https://open.kakao.com/o/sHM2wwsh" },
+      { name:"창원점",     phone:"055.263.2325", reserve:"https://booking.naver.com/booking/6/bizes/843111",  kakao:"https://open.kakao.com/o/sdcvbh5e" },
+      { name:"양산점",     phone:"055.912.0425", reserve:"https://booking.naver.com/booking/13/bizes/868629", kakao:"https://open.kakao.com/o/sp44Hxaf" },
+      { name:"진주점",     phone:"010.5654.2407", reserve:"https://m.booking.naver.com/booking/6/bizes/1485854", kakao:"https://open.kakao.com/o/sbxBToNh" },
+      { name:"인천점",     phone:"032.283.2325", reserve:"https://m.booking.naver.com/booking/13/bizes/1039475", kakao:"https://open.kakao.com/o/sIrXajUf" },
+      { name:"안산점",     phone:"010.6591.2322", reserve:"https://m.booking.naver.com/booking/6/bizes/1500008", kakao:"https://open.kakao.com/o/sqRSjaRh" },
+      { name:"마산점",     phone:"010.8832.2325", reserve:"https://booking.naver.com/booking/6/bizes/1526541", kakao:"https://open.kakao.com/o/ssWvuvYh" },
+      { name:"울산점",     phone:"010.9807.2325", reserve:"https://booking.naver.com/booking/6/bizes/1534767", kakao:"https://open.kakao.com/o/sKjCbA0h" },
+      { name:"대구점",     phone:"010-8492-2328", reserve:"https://m.place.naver.com/place/2043617700/ticket?entry=pll&bk_query=%ED%95%9C%EB%B9%94%ED%95%9C%EB%B3%B5", kakao:null }
     ];
 
     function getDeviceType(){
@@ -548,6 +673,18 @@
       toastTimer=setTimeout(()=>toastEl.classList.remove("show"), 1400);
     }
 
+    /* 프로모 가격 변경(필요시 한 줄로) */
+    function setPromoPrices({aTitle,aWas,aNow,bTitle,bWas,bNow}){
+      if(aTitle) document.getElementById("promoATitle").textContent = aTitle;
+      if(aWas)   document.getElementById("promoAWas").textContent = aWas;
+      if(aNow!==undefined) document.getElementById("promoANow").textContent = String(aNow);
+
+      if(bTitle) document.getElementById("promoBTitle").textContent = bTitle;
+      if(bWas)   document.getElementById("promoBWas").textContent = bWas;
+      if(bNow!==undefined) document.getElementById("promoBNow").textContent = String(bNow);
+    }
+    // 예: setPromoPrices({aWas:"20만원", aNow:11, bWas:"33만원", bNow:25});
+
     /* 모달/상태 */
     const state = { branch:null };
 
@@ -576,6 +713,7 @@
         branchList.appendChild(el);
       });
     }
+
     function selectBranch(b){
       state.branch=b;
       branchText.textContent = `${b.name} 선택됨 | 다시 선택하려면 눌러주세요`;
@@ -623,19 +761,37 @@
       return false;
     }
 
+    /* ✅ iOS/Safari에서 "자동 전화연결 차단" 방지:
+       - 반드시 사용자 클릭 이벤트 안에서 location 이동(현재 구조 OK)
+       - 혹시 일부 브라우저에서 막히면 fallback로 window.open 사용
+    */
     btnCall.addEventListener("click",(e)=>{
       e.preventDefault();
       if(requireBranchOrOpenModal(e)) return;
       const telHref = toTelHref(state.branch.phone);
       if(!telHref) return;
       logEventNoWait("click",{ action:"call", href:telHref });
-      window.location.href = telHref;
+
+      try{
+        window.location.href = telHref;
+      }catch(err){
+        window.open(telHref, "_self");
+      }
     });
 
     btnKakao.addEventListener("click",(e)=>{
       e.preventDefault();
-      showToast("준비중입니다.");
-      logEventNoWait("click",{ action:"kakao_pending", href:"" });
+      if(requireBranchOrOpenModal(e)) return;
+
+      const href = state.branch.kakao;
+      if(!href){
+        showToast("준비중입니다.");
+        logEventNoWait("click",{ action:"kakao_pending", href:"" });
+        return;
+      }
+
+      logEventNoWait("click",{ action:"kakao", href });
+      window.location.href = href;
     });
 
     btnReserve.addEventListener("click",(e)=>{
@@ -661,7 +817,7 @@
 
     /* 슬라이드 + 도트 + 스와이프 */
     const canvas=document.getElementById("canvas");
-    const slides=Array.from(document.querySelectorAll(".bgSlide")); /* ✅ 변경 */
+    const slides=Array.from(document.querySelectorAll(".bg img"));
     const dotsWrap=document.getElementById("dots");
     let idx=0, timer=null, pausedUntil=0;
 

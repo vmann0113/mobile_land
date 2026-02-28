@@ -9,11 +9,11 @@
     :root{
       --maxW: 520px;
 
-      /* glass (조금 더 투명) */
+      /* glass */
       --glass-bg: rgba(255,255,255,0.15);
       --glass-border: rgba(255,255,255,0.16);
 
-      /* 하단 스택(아래부터 5px 간격) */
+      /* stack */
       --gap: 5px;
       --safeB: env(safe-area-inset-bottom);
 
@@ -22,13 +22,16 @@
       --branchH: 34.5px;
       --dotsH: 10px;
 
-      /* promo(가격 카드 패널) 높이 */
-      --promoH: 92px;
+      /* ✅ promo height (카드+안내문 포함) */
+      --promoH: 118px;
 
-      /* Hanbeam wine */
-      --wine: #6f2d2d;
-      --wine-deep: #5a2323;
-      --wine-lite: #8a3a3a;
+      /* Hanbeam Wine (고급 톤) */
+      --wine1: #7b2e2e;
+      --wine2: #6a2626;
+      --wine3: #4f1b1b;
+
+      /* ✅ 배경 포커스 Y (JS가 세팅) */
+      --bgPosY: 0%;
     }
 
     *{ box-sizing:border-box; }
@@ -39,6 +42,26 @@
       overflow:hidden;
       -webkit-text-size-adjust:100%;
       text-size-adjust:100%;
+    }
+
+    /* ✅ Paperlogy 폰트: assets에 넣어서 쓰는 방식(권장)
+       아래 파일을 준비해서 넣어줘:
+       /assets/fonts/Paperlogy-ExtraBold.woff2
+       /assets/fonts/Paperlogy-Bold.woff2
+    */
+    @font-face{
+      font-family: "Paperlogy";
+      src: url("assets/fonts/Paperlogy-Bold.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face{
+      font-family: "Paperlogy";
+      src: url("assets/fonts/Paperlogy-ExtraBold.woff2") format("woff2");
+      font-weight: 800;
+      font-style: normal;
+      font-display: swap;
     }
 
     .wrap{
@@ -64,7 +87,7 @@
       touch-action: pan-y;
     }
 
-    /* ✅ 배경: 자르지 않음(상단 기준점) */
+    /* ✅ 배경: cover 유지 + "포커스 Y"를 JS로 자동 조정 */
     .bg{
       position:absolute;
       inset:0;
@@ -77,16 +100,15 @@
       width:100%;
       height:100%;
       object-fit: cover;
-      object-position: top center;
+      object-position: center var(--bgPosY);
       opacity:0;
-      transition: opacity .6s ease;
+      transition: opacity .6s ease, object-position .25s ease;
       filter: contrast(1.08) saturate(1.05);
       transform: translateZ(0);
-      will-change: opacity;
+      will-change: opacity, object-position;
     }
     .bg img.active{ opacity:1; }
 
-    /* ✅ 클릭 막지 않게 반드시 필요 */
     .overlay{
       position:absolute; inset:0; z-index:1;
       pointer-events:none;
@@ -105,12 +127,10 @@
         inset 0 1px 0 rgba(255,255,255,0.35);
     }
 
-    /* ===== 하단 스택(아래에서부터 쌓기) =====
+    /* ===== 하단 스택 =====
        infoBar(bottom) -> actionPanel -> branch -> promo -> dots
-       간격은 모두 5px
     */
 
-    /* 사업자 정보 보기 바 */
     .infoBar{
       position:absolute;
       z-index:10;
@@ -131,7 +151,6 @@
       user-select:none;
     }
 
-    /* 액션 패널 */
     .action-panel{
       position:absolute;
       z-index:10;
@@ -186,7 +205,6 @@
       white-space:nowrap;
     }
 
-    /* 지점 선택 */
     .branch{
       position:absolute;
       z-index:10;
@@ -225,7 +243,7 @@
     }
     .branch svg path{ stroke: rgba(255,255,255,0.92); }
 
-    /* ===== 프로모(가격) 패널: 도트 아래 / 지점 선택 위 ===== */
+    /* ✅ 프로모 패널: 도트 아래 / 지점 선택 위 */
     .promoPanel{
       position:absolute;
       z-index:10;
@@ -244,7 +262,8 @@
       border-radius: 22px;
       padding: 10px;
       display:flex;
-      align-items:center;
+      flex-direction:column;
+      gap: 6px;
     }
 
     .promoRow{
@@ -253,98 +272,100 @@
       gap:10px;
     }
 
+    /* ✅ 카드: 네가 준 이미지 느낌으로 더 가깝게 */
     .promoCard{
       flex:1 1 0;
-      height: calc(var(--promoH) - 20px);
-      border-radius: 16px;
+      height: 70px;
+      border-radius: 14px;
       overflow:hidden;
-      background: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10);
       border: 1px solid rgba(255,255,255,0.14);
-      box-shadow:
-        0 10px 22px rgba(0,0,0,0.10),
-        inset 0 1px 0 rgba(255,255,255,0.32);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
       display:flex;
       flex-direction:column;
-      justify-content:space-between;
     }
 
-    /* 고급 와인 헤더(그라데이션 + 하이라이트) */
+    /* 헤더(와인색, 고급 그라데이션) */
     .promoHead{
-      height: 28px;
+      height: 30px;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-weight: 1000;
-      font-size: 12px;
-      color: rgba(255,255,255,0.96);
-      letter-spacing: -0.02em;
+      font-family: "Paperlogy", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      color: #fff;
+      letter-spacing: -0.04em;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 45%),
-        linear-gradient(180deg, var(--wine-lite) 0%, var(--wine) 55%, var(--wine-deep) 100%);
+        linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 55%),
+        linear-gradient(180deg, var(--wine1) 0%, var(--wine2) 55%, var(--wine3) 100%);
+      text-shadow: 0 1px 6px rgba(0,0,0,0.25);
     }
 
+    /* 바디(화이트, 타이포 강하게) */
     .promoBody{
       flex:1;
-      padding: 6px 10px 9px;
+      background: rgba(255,255,255,0.92);
       display:flex;
-      align-items:flex-end;
+      align-items:center;
       justify-content:space-between;
-      gap:10px;
-      background: rgba(255,255,255,0.86);
+      padding: 10px 12px;
+      gap: 10px;
     }
 
-    .promoLeft{
-      display:flex;
-      align-items:flex-end;
-      gap:6px;
-      min-width: 0;
-    }
-
-    /* 원가(취소선) - 이미지 느낌에 가깝게(두께/색) */
     .promoWas{
-      font-size: 12px;
-      font-weight: 900;
-      color: rgba(15,23,42,0.58);
+      font-family: "Paperlogy", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: rgba(0,0,0,0.55);
+      letter-spacing: -0.04em;
       text-decoration: line-through;
-      text-decoration-color: rgba(15,23,42,0.58);
-      text-decoration-thickness: 2.4px;
-      text-underline-offset: 2px;
+      text-decoration-thickness: 3px;         /* ✅ 이미지처럼 굵게 */
+      text-decoration-color: rgba(0,0,0,0.45);
+      text-underline-offset: 3px;
       white-space:nowrap;
-      letter-spacing: -0.02em;
     }
 
     .promoArrow{
-      font-size: 12px;
-      font-weight: 1100;
+      font-weight: 900;
+      font-size: 16px;
       color: rgba(111,45,45,0.78);
-      margin: 0 4px;
+      margin: 0 6px;
       white-space:nowrap;
     }
 
     .promoNow{
       display:flex;
-      align-items:flex-end;
-      gap:2px;
+      align-items:baseline;
+      gap:3px;
       white-space:nowrap;
+      font-family: "Paperlogy", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
     }
-
-    /* 숫자 타이포: 굵고 자간 좁게(이미지 느낌) */
     .promoNow .num{
-      font-size: 24px;
-      font-weight: 1100;
+      font-weight: 800;
+      font-size: 38px;          /* ✅ 큰 숫자 */
+      letter-spacing: -0.06em;  /* ✅ 자간 좁게 */
       color: rgba(111,45,45,0.98);
-      letter-spacing: -0.05em;
-      line-height: 0.98;
+      line-height: 1;
     }
     .promoNow .unit{
-      font-size: 13px;
-      font-weight: 1000;
-      color: rgba(15,23,42,0.78);
-      padding-bottom: 1px;
-      letter-spacing: -0.02em;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.05em;
+      color: rgba(0,0,0,0.62);
     }
 
-    /* 도트 (프로모 패널 위) */
+    .promoFoot{
+      font-size: 11px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.88);
+      text-shadow: 0 1px 8px rgba(0,0,0,0.40);
+      letter-spacing: -0.02em;
+      opacity: 0.95;
+      padding-left: 2px;
+    }
+
+    /* 도트(프로모 위) */
     .dots{
       position:absolute;
       z-index:10;
@@ -361,13 +382,9 @@
       gap:6px;
       pointer-events:none;
     }
-    .dot{
-      width:6px;height:6px;border-radius:50%;
-      background: rgba(255,255,255,0.35);
-    }
+    .dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
     .dot.on{ background: rgba(255,255,255,0.95); }
 
-    /* Toast */
     .toast{
       position:absolute;
       left:50%;
@@ -394,7 +411,7 @@
       transform: translateX(-50%) translateY(-2px);
     }
 
-    /* 모달 공통 */
+    /* 모달 */
     .modal-backdrop{
       position:absolute; inset:0; z-index:50;
       display:none; align-items:flex-end; justify-content:center;
@@ -462,11 +479,11 @@
       white-space: pre-line;
     }
 
-    /* 작은 화면 보정 */
     @media (max-width: 360px){
-      :root{ --promoH: 88px; }
-      .promoHead{ font-size: 11px; }
-      .promoNow .num{ font-size: 22px; }
+      :root{ --promoH: 112px; }
+      .promoHead{ font-size: 14px; }
+      .promoNow .num{ font-size: 34px; }
+      .promoWas{ font-size: 15px; }
     }
   </style>
 </head>
@@ -491,7 +508,7 @@
           <div class="promoCard" id="promoA">
             <div class="promoHead" id="promoATitle">웨딩 촬영용 한복대여</div>
             <div class="promoBody">
-              <div class="promoLeft">
+              <div style="display:flex;align-items:baseline;gap:8px;">
                 <span class="promoWas" id="promoAWas">20만원</span>
                 <span class="promoArrow">›</span>
               </div>
@@ -504,7 +521,7 @@
           <div class="promoCard" id="promoB">
             <div class="promoHead" id="promoBTitle">결혼식 한복대여</div>
             <div class="promoBody">
-              <div class="promoLeft">
+              <div style="display:flex;align-items:baseline;gap:8px;">
                 <span class="promoWas" id="promoBWas">33만원</span>
                 <span class="promoArrow">›</span>
               </div>
@@ -514,6 +531,9 @@
             </div>
           </div>
         </div>
+
+        <!-- ✅ 안내문 추가 -->
+        <div class="promoFoot">본 가격은 기간 이벤트 가격입니다. 변동될 수 있습니다.</div>
       </div>
 
       <div class="branch glass" id="openBranch" role="button" tabindex="0">
@@ -527,25 +547,25 @@
         <div class="btnRow">
           <div class="btnCol">
             <a class="actionPng" id="btnCall" href="#"
-              style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
+               style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
             <div class="btnLabel">전화문의</div>
           </div>
 
           <div class="btnCol">
             <a class="actionPng" id="btnKakao" href="#"
-              style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
+               style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
             <div class="btnLabel">카톡문의</div>
           </div>
 
           <div class="btnCol">
             <a class="actionPng" id="btnReserve" href="#"
-              style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
+               style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
             <div class="btnLabel">네이버예약</div>
           </div>
 
           <div class="btnCol">
             <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr/9"
-              style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
+               style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
             <div class="btnLabel">더 알아보기</div>
           </div>
         </div>
@@ -593,10 +613,10 @@
   </div>
 
   <script>
-    /* ✅ GAS WebApp URL (사용자 제공) */
+    /* ✅ GAS WebApp URL */
     const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
 
-    /* ✅ 배경 전환 속도 5.5초 */
+    /* ✅ 배경 전환 속도 */
     const SLIDE_INTERVAL_MS = 5500;
 
     const BRANCHES = [
@@ -630,7 +650,7 @@
       return digits ? ("tel:" + digits) : "";
     }
 
-    /* ✅ Safari/인앱 안정 로깅(기다리지 않음) */
+    /* ✅ Safari/인앱 안정 로깅 */
     function logEventNoWait(type, data = {}){
       const payload = {
         type,
@@ -673,7 +693,7 @@
       toastTimer=setTimeout(()=>toastEl.classList.remove("show"), 1400);
     }
 
-    /* 프로모 가격 변경(필요시 한 줄로) */
+    /* ✅ 프로모 가격 변경(원하면 한 줄로만 바꾸면 됨) */
     function setPromoPrices({aTitle,aWas,aNow,bTitle,bWas,bNow}){
       if(aTitle) document.getElementById("promoATitle").textContent = aTitle;
       if(aWas)   document.getElementById("promoAWas").textContent = aWas;
@@ -684,6 +704,37 @@
       if(bNow!==undefined) document.getElementById("promoBNow").textContent = String(bNow);
     }
     // 예: setPromoPrices({aWas:"20만원", aNow:11, bWas:"33만원", bNow:25});
+
+    /* ✅ 배경 포커스 자동 맞춤:
+       "프로모 패널 바로 위"에 배경의 중요한 부분이 오도록
+       => object-position의 Y(%)를 자동으로 계산해 --bgPosY로 반영
+    */
+    function applyBgFocus(){
+      const canvas = document.getElementById("canvas");
+      const promo = document.getElementById("promoPanel");
+      if(!canvas || !promo) return;
+
+      const ch = canvas.clientHeight;
+      if(!ch) return;
+
+      // promo의 top(캔버스 기준)
+      const promoTop = promo.offsetTop;
+
+      // '안전영역'이 promo에 가리지 않도록, promoTop보다 조금 위를 포커스 중심으로 잡음
+      // 숫자(160)는 "얼굴/문구가 promo 바로 위에 오게" 만드는 경험값 → 필요하면 140~200 사이로 조절
+      const focusPx = Math.max(0, promoTop - 160);
+
+      // focusPx를 object-position 퍼센트로 변환 (0~100%)
+      const y = Math.min(100, Math.max(0, (focusPx / ch) * 100));
+
+      // top 기준으로 너무 붙는 것 방지 (최소 6% 정도는 유지)
+      const yClamped = Math.max(6, y);
+
+      canvas.style.setProperty("--bgPosY", yClamped.toFixed(2) + "%");
+    }
+
+    window.addEventListener("resize", applyBgFocus, {passive:true});
+    window.addEventListener("orientationchange", () => setTimeout(applyBgFocus, 150), {passive:true});
 
     /* 모달/상태 */
     const state = { branch:null };
@@ -761,10 +812,6 @@
       return false;
     }
 
-    /* ✅ iOS/Safari에서 "자동 전화연결 차단" 방지:
-       - 반드시 사용자 클릭 이벤트 안에서 location 이동(현재 구조 OK)
-       - 혹시 일부 브라우저에서 막히면 fallback로 window.open 사용
-    */
     btnCall.addEventListener("click",(e)=>{
       e.preventDefault();
       if(requireBranchOrOpenModal(e)) return;
@@ -772,11 +819,8 @@
       if(!telHref) return;
       logEventNoWait("click",{ action:"call", href:telHref });
 
-      try{
-        window.location.href = telHref;
-      }catch(err){
-        window.open(telHref, "_self");
-      }
+      // 사용자 클릭 안에서 실행 (사파리 경고 최소화)
+      window.location.href = telHref;
     });
 
     btnKakao.addEventListener("click",(e)=>{
@@ -789,7 +833,6 @@
         logEventNoWait("click",{ action:"kakao_pending", href:"" });
         return;
       }
-
       logEventNoWait("click",{ action:"kakao", href });
       window.location.href = href;
     });
@@ -838,6 +881,9 @@
       idx=(n+slides.length)%slides.length;
       slides[idx].classList.add("active");
       setDots();
+
+      // 슬라이드 바뀔 때도 포커스 재계산(아이폰에서 특히 유용)
+      requestAnimationFrame(applyBgFocus);
     }
     function next(){ showSlide(idx+1); }
     function prev(){ showSlide(idx-1); }
@@ -854,6 +900,10 @@
 
     buildDots();
     startAuto();
+
+    // 최초 1회 포커스 계산 (폰트/레이아웃 안정 후 한번 더)
+    requestAnimationFrame(applyBgFocus);
+    window.addEventListener("load", () => setTimeout(applyBgFocus, 250), {once:true});
 
     let x0=null,y0=null,moved=false;
     canvas.addEventListener("touchstart",(e)=>{

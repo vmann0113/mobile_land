@@ -14,23 +14,25 @@
       --glass-bg: rgba(255,255,255,0.15);
       --glass-border: rgba(255,255,255,0.16);
 
-      /* ====== 하단 모듈 높이 ====== */
+      /* ====== 하단 모듈 높이(고정) ====== */
       --infoH: 30px;
       --actionH: 92px;
       --branchH: 34.5px;
       --promoH: 98px;
 
-      /* ====== ✅ 간격(여기만 만지면 됨) ====== */
+      /* ====== ✅ 간격(한 방에 통일) ====== */
       --stackPadX: 16.5px;
       --stackPadBottom: 5px;
 
-      --gapPromoToBranch: 1px;     /* ✅ 가격(프로모) ↔ 지점선택 간격 */
-      --gapBranchToAction: 6px;    /* 지점선택 ↔ 액션버튼 */
-      --gapActionToInfo: 6px;      /* 액션버튼 ↔ 운영사정보 */
+      --gapModule: 6px;          /* ✅ 모든 모듈 간격 동일 */
+      --gapHeroToPromo: var(--gapModule);
+      --gapPromoToBranch: var(--gapModule);
+      --gapBranchToAction: var(--gapModule);
+      --gapActionToInfo: var(--gapModule);
 
-      /* ====== HERO(광고 카드) 높이 제어 ====== */
-      --heroMinH: 260px;           /* 낮은 폰 기준 최소 */
-      --heroMaxH: 550px;           /* ✅ 큰 폰(갤럭시)에서 너무 커지면 여기 줄여 */
+      /* ====== HERO(광고 카드) 높이(여기만 폰별로 달라짐) ====== */
+      --heroMinH: 260px;
+      --heroMaxH: 550px;
 
       /* 도트 위치(광고 카드 하단에서 위로) */
       --dotsBottomInHero: 14px;
@@ -53,7 +55,6 @@
       text-size-adjust:100%;
     }
 
-    /* (유지) Paperlogy 폰트 파일은 남겨두되, 현재는 사용 안 함 */
     @font-face{
       font-family: "Paperlogy";
       src: url("assets/fonts/Paperlogy-Bold.woff2") format("woff2");
@@ -69,7 +70,6 @@
       font-display: swap;
     }
 
-    /* iOS 주소창/하단바 변동 대응 */
     .wrap{
       width:100vw;
       height:100vh;
@@ -148,10 +148,11 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      padding: 12px var(--stackPadX) 8px;
+
+      /* ✅ hero ↔ promo 간격을 여기서 통제 */
+      padding: 12px var(--stackPadX) var(--gapHeroToPromo);
     }
 
-    /* ✅ 광고 이미지를 "모듈 카드"로 크롭 */
     .heroCard{
       position:relative;
       width: 100%;
@@ -163,7 +164,7 @@
       box-shadow: 0 18px 60px rgba(0,0,0,0.28);
     }
 
-    /* ✅ 카드 내부 블러 레이어(여백 채움용: cover + blur) */
+    /* 카드 내부 블러 레이어(여백 채움용) */
     .heroSlidesBlur{
       position:absolute; inset:0;
       overflow:hidden;
@@ -175,7 +176,7 @@
       left: calc(var(--bgOver) * -1);
       width: calc(100% + (var(--bgOver) * 2));
       height: calc(100% + (var(--bgOver) * 2));
-      object-fit: cover;          /* 여백 채우는 건 cover OK */
+      object-fit: cover;
       object-position: center;
       opacity:0;
       transition: opacity .55s ease;
@@ -185,7 +186,7 @@
     }
     .heroSlidesBlur img.active{ opacity:0.85; }
 
-    /* ✅ 카드 내부 메인 레이어(절대 안 잘리게: contain) */
+    /* ✅ 카드 내부 메인 레이어: 가로폭 100% 고정(모듈폭=이미지폭) */
     .heroSlidesMain{
       position:absolute; inset:0;
       overflow:hidden;
@@ -193,11 +194,12 @@
     }
     .heroSlidesMain img{
       position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      object-fit: contain;        /* ✅ 핵심: 좌우/상하 잘림 방지 */
-      object-position: center;    /* ✅ 핵심: 항상 중앙 정렬 */
+      left:50%;
+      top:50%;
+      transform: translate(-50%, -50%);
+
+      width:100%;        /* ✅ 핵심: 가로폭 = 모듈폭 */
+      height:auto;       /* 높이는 이미지 비율대로 */
       opacity:0;
       transition: opacity .55s ease;
       filter: contrast(1.08) saturate(1.05);
@@ -205,7 +207,7 @@
     }
     .heroSlidesMain img.active{ opacity:1; }
 
-    /* ✅ 도트는 광고 카드 안에 고정 */
+    /* 도트(광고 카드 안) */
     .dots{
       position:absolute;
       left:50%;
@@ -239,7 +241,7 @@
         inset 0 1px 0 rgba(255,255,255,0.35);
     }
 
-    /* ✅ 프로모(이미지 모듈) */
+    /* 프로모 */
     .promoPanel{
       height: var(--promoH);
       background: transparent !important;
@@ -263,7 +265,7 @@
       display:block;
     }
 
-    /* ✅ 지점 선택 */
+    /* 지점 선택 */
     .branch{
       height: var(--branchH);
       border-radius: 999px;
@@ -291,7 +293,7 @@
     .branch svg{ width:14px; height:14px; opacity:0.95; flex: 0 0 auto; }
     .branch svg path{ stroke: rgba(255,255,255,0.92); }
 
-    /* ✅ 액션 패널 */
+    /* 액션 패널 */
     .action-panel{
       height: var(--actionH);
       border-radius: 22px;
@@ -340,7 +342,7 @@
       font-family: var(--fontMain);
     }
 
-    /* ✅ 운영사 정보 바 */
+    /* 운영사 정보 바 */
     .infoBar{
       height: var(--infoH);
       border-radius: 12px;
@@ -450,16 +452,11 @@
       font-family: var(--fontMain);
     }
 
-    /* 낮은 화면 대응(필요시 더 줄이기) */
+    /* ✅ 낮은 화면 대응: 히어로 높이만 조절(다른 모듈은 고정) */
     @media (max-height: 760px){
       :root{
-        --promoH: 98px;
-        --actionH: 88px;
         --heroMinH: 230px;
         --heroMaxH: 440px;
-        --gapPromoToBranch: 3px;
-        --gapBranchToAction: 7px;
-        --gapActionToInfo: 7px;
       }
     }
   </style>
@@ -485,7 +482,6 @@
         <div class="hero" id="hero">
           <div class="heroCard" id="heroCard">
 
-            <!-- ✅ (추가) 카드 내부 블러 레이어: 여백 채움용 -->
             <div class="heroSlidesBlur" aria-hidden="true" id="heroSlidesBlur">
               <img class="active" src="assets/bg1.webp" alt="">
               <img src="assets/bg2.webp" alt="">
@@ -493,7 +489,6 @@
               <img src="assets/bg4.webp" alt="">
             </div>
 
-            <!-- ✅ 카드 내부 메인 레이어: contain(절대 안 잘림) -->
             <div class="heroSlidesMain" aria-hidden="true" id="heroSlidesMain">
               <img class="active" src="assets/bg1.webp" alt="">
               <img src="assets/bg2.webp" alt="">
@@ -501,7 +496,6 @@
               <img src="assets/bg4.webp" alt="">
             </div>
 
-            <!-- 도트(광고 카드 안) -->
             <div class="dots" id="dots" aria-hidden="true"></div>
           </div>
         </div>
@@ -794,13 +788,11 @@
       }
     })();
 
-    /* 슬라이드 + 도트 + 스와이프 (hero main + hero blur + 전체 blur 전환) */
+    /* 슬라이드 + 도트 + 스와이프 (hero + blur 둘 다 전환) */
     const canvas = document.getElementById("canvas");
-
     const heroMainImgs = Array.from(document.querySelectorAll("#heroSlidesMain img"));
     const heroBlurImgs = Array.from(document.querySelectorAll("#heroSlidesBlur img"));
     const blurImgs = Array.from(document.querySelectorAll("#bgBlur img"));
-
     const dotsWrap = document.getElementById("dots");
 
     let idx=0, timer=null, pausedUntil=0;

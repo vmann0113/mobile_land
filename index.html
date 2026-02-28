@@ -10,7 +10,7 @@
   --maxW:520px;
   --fontMain:"Presentation",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
 
-  /* ✅ 전체 간격 3px */
+  /* ✅ 전체 간격 3px 통일 */
   --gap:3px;
   --safeB:env(safe-area-inset-bottom);
   --baseBottom:3px;
@@ -58,83 +58,100 @@ body{
   height:calc(100% + (var(--bgOver)*2));
   object-fit:cover;
   object-position:top center;
+  opacity:0;
+  transition:opacity .6s ease;
   transform:translate3d(0,var(--bgShift,0px),0);
-  will-change:transform;
+}
+.bg img.active{opacity:1;}
+
+.overlay{
+  position:absolute;inset:0;z-index:1;
+  background:linear-gradient(to bottom,rgba(0,0,0,0) 38%,rgba(0,0,0,0.62) 100%);
 }
 
-/* ===== 공통 UI ===== */
-.ui{
+/* ===== glass 완전 제거 ===== */
+.glass{
+  background:transparent!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  border:none!important;
+  box-shadow:none!important;
+}
+
+/* ===== 하단 스택 ===== */
+
+.infoBar{
   position:absolute;
   z-index:10;
-  left:calc(16.5 / 390 * 100%);
-  width:calc(357 / 390 * 100%);
-  color:#fff;
-}
-
-/* ===== 운영사 ===== */
-.infoBar{
+  left:calc(16.5/390*100%);
+  width:calc(357/390*100%);
   height:var(--infoH);
-  bottom:calc(var(--baseBottom) + var(--safeB));
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  bottom:calc(var(--baseBottom)+var(--safeB));
   border-radius:12px;
-  background:rgba(0,0,0,0.45);
-  border:1px solid rgba(255,255,255,0.15);
-  font-size:11px;
-  font-weight:900;
+  background:rgba(0,0,0,0.55);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:900;
 }
 
-/* ===== 액션 ===== */
 .action-panel{
+  position:absolute;
+  z-index:10;
+  left:calc(16.5/390*100%);
+  width:calc(357/390*100%);
   height:var(--actionH);
-  bottom:calc(var(--baseBottom) + var(--safeB) + var(--infoH) + var(--gap));
-  border-radius:20px;
-  background:rgba(255,255,255,0.12);
+  bottom:calc(var(--baseBottom)+var(--safeB)+var(--infoH)+var(--gap));
+  border-radius:22px;
+  padding:8px 10px;
 }
 
-/* ===== 지점 ===== */
 .branch{
+  position:absolute;
+  z-index:10;
+  left:calc(16.5/390*100%);
+  width:calc(357/390*100%);
   height:var(--branchH);
   bottom:calc(
-    var(--baseBottom) + var(--safeB)
-    + var(--infoH) + var(--gap)
-    + var(--actionH) + var(--gap)
+    var(--baseBottom)+var(--safeB)
+    +var(--infoH)+var(--gap)
+    +var(--actionH)+var(--gap)
   );
   border-radius:999px;
-  background:rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  text-shadow:0 1px 8px rgba(0,0,0,0.45);
 }
 
-/* ===== 프로모 ===== */
 .promoPanel{
+  position:absolute;
+  z-index:10;
+  left:calc(16.5/390*100%);
+  width:calc(357/390*100%);
   height:var(--promoH);
   bottom:calc(
-    var(--baseBottom) + var(--safeB)
-    + var(--infoH) + var(--gap)
-    + var(--actionH) + var(--gap)
-    + var(--branchH) + var(--gap)
+    var(--baseBottom)+var(--safeB)
+    +var(--infoH)+var(--gap)
+    +var(--actionH)+var(--gap)
+    +var(--branchH)+var(--gap)
   );
-  border-radius:18px;
-  background:rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
 }
 
-/* ===== 도트 ===== */
 .dots{
   position:absolute;
   z-index:10;
   left:50%;
   transform:translateX(-50%);
   bottom:calc(
-    var(--baseBottom) + var(--safeB)
-    + var(--infoH) + var(--gap)
-    + var(--actionH) + var(--gap)
-    + var(--branchH) + var(--gap)
-    + var(--promoH) + var(--gap)
+    var(--baseBottom)+var(--safeB)
+    +var(--infoH)+var(--gap)
+    +var(--actionH)+var(--gap)
+    +var(--branchH)+var(--gap)
+    +var(--promoH)+var(--gap)
   );
-  display:flex;
-  gap:6px;
+  display:flex;gap:6px;
 }
-.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.4);}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.35);}
 .dot.on{background:#fff;}
 </style>
 </head>
@@ -144,42 +161,42 @@ body{
 <div class="canvas" id="canvas">
 
 <div class="bg">
-  <img id="bgImg" src="assets/bg1.webp" alt="">
+  <img class="active" src="assets/bg1.webp">
+  <img src="assets/bg2.webp">
+  <img src="assets/bg3.webp">
+  <img src="assets/bg4.webp">
+</div>
+<div class="overlay"></div>
+
+<div class="dots" id="dots"></div>
+
+<div class="promoPanel" id="promoPanel">
+  <img src="assets/promo.webp" style="max-width:100%;max-height:100%;">
 </div>
 
-<div class="dots">
-  <div class="dot on"></div>
-  <div class="dot"></div>
-  <div class="dot"></div>
-</div>
-
-<div class="promoPanel ui"></div>
-<div class="branch ui"></div>
-<div class="action-panel ui"></div>
-<div class="infoBar ui">광고운영사 정보 보기</div>
+<div class="branch">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
+<div class="action-panel"></div>
+<div class="infoBar">광고운영사 정보 보기</div>
 
 </div>
 </div>
 
 <script>
-/* 🔥 1168px 지점을 프로모 상단과 정확히 일치 */
-const DESIGN_REF_Y_RATIO = 1168 / 1688;
+const DESIGN_REF_Y_RATIO=1168/1688;
 
 function applyBgFocus(){
   const canvas=document.getElementById("canvas");
-  const promo=document.querySelector(".promoPanel");
-  const img=document.getElementById("bgImg");
-  if(!canvas||!promo||!img)return;
+  const promo=document.getElementById("promoPanel");
+  const active=document.querySelector(".bg img.active");
+  if(!canvas||!promo||!active)return;
 
   const ch=canvas.clientHeight;
   const cw=canvas.clientWidth;
   const over=parseFloat(getComputedStyle(document.documentElement)
               .getPropertyValue("--bgOver"))||24;
 
-  const targetY=promo.offsetTop;
-
-  const iw=img.naturalWidth;
-  const ih=img.naturalHeight;
+  const iw=active.naturalWidth;
+  const ih=active.naturalHeight;
   if(!iw||!ih)return;
 
   const boxW=cw+over*2;
@@ -188,20 +205,20 @@ function applyBgFocus(){
   const dispH=ih*scale;
 
   const refY=dispH*DESIGN_REF_Y_RATIO;
-  let shift=(targetY+over)-refY;
+  const targetY=promo.offsetTop;
 
+  let shift=(targetY+over)-refY;
   const minShift=(ch+over)-dispH;
   const maxShift=over;
 
   if(shift<minShift)shift=minShift;
   if(shift>maxShift)shift=maxShift;
 
-  img.style.setProperty("--bgShift",shift.toFixed(2)+"px");
+  active.style.setProperty("--bgShift",shift.toFixed(2)+"px");
 }
 
 window.addEventListener("load",()=>setTimeout(applyBgFocus,120));
 window.addEventListener("resize",()=>setTimeout(applyBgFocus,60));
-document.getElementById("bgImg").addEventListener("load",()=>setTimeout(applyBgFocus,60));
 </script>
 
 </body>

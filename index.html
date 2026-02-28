@@ -25,7 +25,7 @@
       --branchH: 34.5px;
       --promoH: 98px;
 
-      /* ====== ✅ 간격(한 방에 통일) ====== */
+      /* ====== ✅ 간격 ====== */
       --stackPadX: 16.5px;
       --stackPadBottom: 5px;
 
@@ -40,13 +40,15 @@
       --heroMaxH: 550px;
 
       --dotsBottomInHero: 14px;
+
+      /* 배경 오버드로우(검은 틈 방지 여유) */
       --bgOver: 46px;
 
       /* iOS safe */
       --safeT: env(safe-area-inset-top);
       --safeB: env(safe-area-inset-bottom);
 
-      /* ✅ 고급 와인 버튼 팔레트 */
+      /* ✅ 와인 버튼 팔레트 */
       --wine1: #3a0b1a;
       --wine2: #6b0f2c;
       --wine3: #8a1638;
@@ -79,7 +81,7 @@
       font-display: swap;
     }
 
-    /* ✅ 캔버스 픽스 + 스케일 */
+    /* ✅ wrap는 화면 전체 */
     .wrap{
       position:relative;
       width:100vw;
@@ -89,8 +91,48 @@
       overflow:hidden;
       padding-top: var(--safeT);
       padding-bottom: var(--safeB);
+      background:#000;
     }
 
+    /* =========================
+       ✅ (핵심) 배경 블러를 stage 밖으로 빼서
+       ✅ 뷰포트에 fixed로 "무조건 꽉 채움"
+       ========================= */
+    .bgBlur{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      overflow:hidden;
+      background:#000;
+      pointer-events:none;
+    }
+    .bgBlur img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit: cover;        /* ✅ 화면 꽉 채움 */
+      object-position: center;
+      opacity:0;
+      transition: opacity .55s ease;
+      filter: blur(26px) saturate(1.08) contrast(1.05);
+      transform: scale(1.16);   /* blur 가장자리 빈틈 방지 */
+      will-change: opacity;
+    }
+    .bgBlur img.active{ opacity:1; }
+
+    .bgDim{
+      position:fixed;
+      inset:0;
+      z-index:1;
+      pointer-events:none;
+      background: radial-gradient(ellipse at center,
+        rgba(0,0,0,0.05) 0%,
+        rgba(0,0,0,0.42) 65%,
+        rgba(0,0,0,0.68) 100%);
+    }
+
+    /* ✅ stage는 이 위로 올라오게 */
     .stage{
       position:absolute;
       left:50%;
@@ -100,6 +142,7 @@
       transform: translate(-50%, -50%) scale(var(--scale));
       transform-origin: center center;
       will-change: transform;
+      z-index:2;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -107,39 +150,13 @@
 
     .canvas{
       position:relative;
-      width: 100%;
-      height: 100%;
+      width:100%;
+      height:100%;
       border-radius:22px;
       overflow:hidden;
       background:#000;
       box-shadow: 0 20px 80px rgba(0,0,0,0.45);
       touch-action: pan-y;
-    }
-
-    .bgBlur{ position:absolute; inset:0; z-index:0; overflow:hidden; background:#000; }
-    .bgBlur img{
-      position:absolute;
-      top: calc(var(--bgOver) * -1);
-      left: calc(var(--bgOver) * -1);
-      width: calc(100% + (var(--bgOver) * 2));
-      height: calc(100% + (var(--bgOver) * 2));
-      object-fit: cover;
-      object-position: center;
-      opacity:0;
-      transition: opacity .55s ease;
-      filter: blur(22px) saturate(1.08) contrast(1.05);
-      transform: scale(1.12);
-      will-change: opacity;
-    }
-    .bgBlur img.active{ opacity:1; }
-
-    .bgDim{
-      position:absolute; inset:0; z-index:1;
-      pointer-events:none;
-      background: radial-gradient(ellipse at center,
-        rgba(0,0,0,0.05) 0%,
-        rgba(0,0,0,0.38) 65%,
-        rgba(0,0,0,0.62) 100%);
     }
 
     .ui{
@@ -162,9 +179,9 @@
 
     .heroCard{
       position:relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 22px;
+      width:100%;
+      height:100%;
+      border-radius:22px;
       overflow:hidden;
       background: rgba(0,0,0,0.20);
       border: 1px solid rgba(255,255,255,0.12);
@@ -256,7 +273,6 @@
       display:block;
     }
 
-    /* ✅ 고급 와인 지점 버튼 */
     .branch{
       height: var(--branchH);
       border-radius: 999px;
@@ -467,16 +483,17 @@
 <body>
   <div class="wrap" id="wrap">
 
+    <!-- ✅ 배경 블러: 이제 화면 전체 fixed (스케일 영향 없음) -->
+    <div class="bgBlur" aria-hidden="true" id="bgBlur">
+      <img class="active" src="assets/bg1.webp" alt="">
+      <img src="assets/bg2.webp" alt="">
+      <img src="assets/bg3.webp" alt="">
+      <img src="assets/bg4.webp" alt="">
+    </div>
+    <div class="bgDim" aria-hidden="true"></div>
+
     <div class="stage" id="stage">
       <div class="canvas" id="canvas">
-
-        <div class="bgBlur" aria-hidden="true" id="bgBlur">
-          <img class="active" src="assets/bg1.webp" alt="">
-          <img src="assets/bg2.webp" alt="">
-          <img src="assets/bg3.webp" alt="">
-          <img src="assets/bg4.webp" alt="">
-        </div>
-        <div class="bgDim" aria-hidden="true"></div>
 
         <div class="ui" id="ui">
           <div class="hero" id="hero">
@@ -583,7 +600,7 @@
   </div>
 
   <script>
-    /* ✅ 390x844 캔버스 픽스 + 스케일(큰 화면에서는 커지게!) */
+    /* ✅ 390x844 캔버스 픽스 + 스케일(큰 화면에서는 커짐) */
     (function(){
       const designW = 390;
       const designH = 844;
@@ -593,9 +610,7 @@
         const vw = vv ? vv.width : window.innerWidth;
         const vh = vv ? vv.height : window.innerHeight;
 
-        /* ✅ 핵심 변경: ,1 제거 → 큰 화면에서 s>1이면 확대됨 */
         const s = Math.min(vw / designW, vh / designH);
-
         document.documentElement.style.setProperty('--scale', String(s));
       }
 

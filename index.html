@@ -7,12 +7,6 @@
 
   <style>
     :root{
-      /* ============================
-         ✅ 디자인 기준 좌표계(일러 기준)
-         ============================ */
-      --designW: 390;
-      --designH: 844;
-
       --maxW: 520px;
       --fontMain: "Presentation", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
 
@@ -20,33 +14,25 @@
       --glass-bg: rgba(255,255,255,0.15);
       --glass-border: rgba(255,255,255,0.16);
 
-      /* ✅ 배경 오버드로우(검은바 방지)
-         - iPhone에서 하단 검은영역 방지하려면 약간 여유를 더 주는게 안전 */
-      --bgOver: 28px;
+      /* ====== 하단 모듈 높이(기본) ====== */
+      --gap: 8px;
+      --infoH: 30px;
+      --actionH: 92px;
+      --branchH: 34.5px;
+      --promoH: 113px;
 
-      /* ============================
-         ✅ UI 스케일/오프셋 (JS에서 자동 세팅)
-         ============================ */
-      --uiScale: 1;
-      --uiOffX: 0px;
-      --uiOffY: 0px;
+      /* hero(광고 이미지 영역) 최소 높이: "낮은 폰" 기준 */
+      --heroMinH: 260px;
 
-      /* ============================
-         ✅ 여기만 만지면 되는 "좌표" (390x844 기준 px)
-         ============================ */
-      --uiLeft: 16.5px;
-      --uiWidth: 357px;
+      /* 도트 위치(히어로 하단에서 위로 몇 px) */
+      --dotsBottom: 14px;
 
-      --yDots: 549.5px;
-      --yPromo: 558.5px;
-      --yBranch: 674.5px;
-      --yAction: 712px;
-      --yInfo: 807px;
+      /* 배경 오버드로우(검은바/잘림 방지 여유) */
+      --bgOver: 40px;
 
-      --hPromo: 113px;
-      --hBranch: 34.5px;
-      --hAction: 92px;
-      --hInfo: 30px;
+      /* iOS safe */
+      --safeT: env(safe-area-inset-top);
+      --safeB: env(safe-area-inset-bottom);
     }
 
     *{ box-sizing:border-box; }
@@ -59,6 +45,7 @@
       text-size-adjust:100%;
     }
 
+    /* (유지) Paperlogy 폰트 파일은 남겨두되, 현재는 사용 안 함 */
     @font-face{
       font-family: "Paperlogy";
       src: url("assets/fonts/Paperlogy-Bold.woff2") format("woff2");
@@ -74,7 +61,7 @@
       font-display: swap;
     }
 
-    /* iOS 주소창/하단바 변화에 강한 단위 보강 */
+    /* ✅ iOS 주소창/하단바 변동 대응: svh + dvh 같이 사용 */
     .wrap{
       width:100vw;
       height:100vh;
@@ -83,15 +70,15 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
+      padding-top: var(--safeT);
+      padding-bottom: var(--safeB);
     }
 
     .canvas{
       position:relative;
       width:min(100vw, var(--maxW));
       aspect-ratio:390/844;
-      max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      max-height: calc(100dvh - var(--safeT) - var(--safeB));
       border-radius:22px;
       overflow:hidden;
       background:#000;
@@ -99,50 +86,113 @@
       touch-action: pan-y;
     }
 
-    /* ✅ 배경 */
-    .bg{
-      position:absolute;
-      inset:0;
-      z-index:0;
+    /* =========================================================
+       ✅ 배경 블러 레이어 (현재 광고 이미지 그대로)
+       - 검은 여백/잘림 체감 최소화
+       ========================================================= */
+    .bgBlur{
+      position:absolute; inset:0; z-index:0;
       overflow:hidden;
       background:#000;
     }
-    .bg img{
+    .bgBlur img{
       position:absolute;
       top: calc(var(--bgOver) * -1);
       left: calc(var(--bgOver) * -1);
       width: calc(100% + (var(--bgOver) * 2));
       height: calc(100% + (var(--bgOver) * 2));
       object-fit: cover;
-      object-position: top center;
-
+      object-position: center;
       opacity:0;
-      transition: opacity .6s ease;
-      filter: contrast(1.08) saturate(1.05);
-
-      transform: translate3d(0, var(--bgShift, 0px), 0);
-      will-change: opacity, transform;
+      transition: opacity .55s ease;
+      filter: blur(22px) saturate(1.08) contrast(1.05);
+      transform: scale(1.08); /* 블러 가장자리 검은 틈 방지 */
+      will-change: opacity;
     }
-    .bg img.active{ opacity:1; }
+    .bgBlur img.active{ opacity:1; }
 
-    .overlay{
+    /* 배경에 살짝 어둡게(텍스트/버튼 가독성) */
+    .bgDim{
       position:absolute; inset:0; z-index:1;
       pointer-events:none;
-      background: linear-gradient(to bottom,
-        rgba(0,0,0,0.00) 38%,
+      background: radial-gradient(ellipse at center,
+        rgba(0,0,0,0.05) 0%,
+        rgba(0,0,0,0.38) 65%,
         rgba(0,0,0,0.62) 100%);
     }
 
-    /* ✅ UI 레이어: 390x844 고정 + (translate로 중앙정렬) + scale */
-    .uiLayer{
+    /* =========================================================
+       ✅ UI 전체 레이아웃 (모듈화)
+       - hero(광고이미지) + bottomStack(프로모/지점/액션/정보)
+       ========================================================= */
+    .ui{
+      position:absolute; inset:0;
+      z-index:10;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* -------------------------
+       HERO(광고 이미지 영역)
+       ------------------------- */
+    .hero{
+      position:relative;
+      flex: 1 1 auto;
+      min-height: var(--heroMinH);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 0 14px; /* 좌우 약간 여백 */
+    }
+
+    /* ✅ 광고 이미지는 "정중앙" + cover
+       - 낮은 폰: hero가 작아서 잘리는 부분이 생기고
+       - 높은 폰: hero가 커져서 위/아래가 더 보임 (너가 원하는 방식) */
+    .heroSlides{
       position:absolute;
-      left:0; top:0;
-      width: calc(var(--designW) * 1px);
-      height: calc(var(--designH) * 1px);
-      transform-origin: top left;
-      transform: translate3d(var(--uiOffX), var(--uiOffY), 0) scale(var(--uiScale));
-      z-index: 10;
-      pointer-events: none; /* 기본은 통과, 클릭 요소는 개별로 auto */
+      inset:0;
+      overflow:hidden;
+    }
+    .heroSlides img{
+      position:absolute;
+      top: calc(var(--bgOver) * -1);
+      left: calc(var(--bgOver) * -1);
+      width: calc(100% + (var(--bgOver) * 2));
+      height: calc(100% + (var(--bgOver) * 2));
+      object-fit: cover;
+      object-position: center;  /* ✅ 정중앙 */
+      opacity:0;
+      transition: opacity .55s ease;
+      filter: contrast(1.08) saturate(1.05);
+      transform: translate3d(0,0,0);
+      will-change: opacity;
+    }
+    .heroSlides img.active{ opacity:1; }
+
+    /* ✅ 도트는 hero 안에 고정(하단에서 조금 띄움) */
+    .dots{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      bottom: var(--dotsBottom);
+      display:flex;
+      gap:6px;
+      pointer-events:none;
+      z-index:5;
+    }
+    .dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
+    .dot.on{ background: rgba(255,255,255,0.95); }
+
+    /* -------------------------
+       BOTTOM STACK(하단 모듈들)
+       ------------------------- */
+    .bottomStack{
+      flex: 0 0 auto;
+      padding: 0 16.5px 14px;
+      display:flex;
+      flex-direction:column;
+      gap: var(--gap);
     }
 
     .glass{
@@ -155,47 +205,20 @@
         inset 0 1px 0 rgba(255,255,255,0.35);
     }
 
-    /* ✅ 도트 */
-    .dots{
-      position:absolute;
-      left:50%;
-      transform:translateX(-50%);
-      top: var(--yDots);
-      display:flex;
-      gap:6px;
-      pointer-events:none;
-    }
-    .dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
-    .dot.on{ background: rgba(255,255,255,0.95); }
-
-    /* ✅ 프로모(배경 제거 유지) */
+    /* ✅ 프로모(이미지만, 패널 흔적 X) */
     .promoPanel{
-      position:absolute;
-      left: var(--uiLeft);
-      width: var(--uiWidth);
-      top: var(--yPromo);
-      height: var(--hPromo);
-
+      height: var(--promoH);
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
-
       display:flex;
       align-items:center;
       justify-content:center;
       pointer-events:none;
     }
-    .promoOnly{
-      width:100%;
-      height:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      pointer-events:none;
-    }
-    .promoOnly img{
+    .promoPanel img{
       max-width:100%;
       max-height:100%;
       width:auto;
@@ -207,12 +230,7 @@
 
     /* ✅ 지점 선택 */
     .branch{
-      position:absolute;
-      left: var(--uiLeft);
-      width: var(--uiWidth);
-      top: var(--yBranch);
-      height: var(--hBranch);
-
+      height: var(--branchH);
       border-radius: 999px;
       display:flex;
       align-items:center;
@@ -224,8 +242,6 @@
       text-shadow: 0 1px 8px rgba(0,0,0,0.45);
       gap: 8px;
       font-family: var(--fontMain);
-
-      pointer-events:auto;
     }
     .branch .txt{
       font-weight:900;
@@ -236,30 +252,18 @@
       text-align:center;
       line-height:1;
     }
-    .branch svg{
-      width:14px; height:14px;
-      opacity:0.95;
-      flex: 0 0 auto;
-    }
+    .branch svg{ width:14px; height:14px; opacity:0.95; flex: 0 0 auto; }
     .branch svg path{ stroke: rgba(255,255,255,0.92); }
 
-    /* ✅ 액션 */
+    /* ✅ 액션 패널 */
     .action-panel{
-      position:absolute;
-      left: var(--uiLeft);
-      width: var(--uiWidth);
-      top: var(--yAction);
-      height: var(--hAction);
-
+      height: var(--actionH);
       border-radius: 22px;
       padding: 8px 10px;
       display:flex;
       align-items:flex-start;
       justify-content:center;
-
-      pointer-events:auto;
     }
-
     .btnRow{
       width:100%;
       display:flex;
@@ -299,14 +303,9 @@
       font-family: var(--fontMain);
     }
 
-    /* ✅ 하단 정보 */
+    /* ✅ 운영사 정보 바 */
     .infoBar{
-      position:absolute;
-      left: var(--uiLeft);
-      width: var(--uiWidth);
-      top: var(--yInfo);
-      height: var(--hInfo);
-
+      height: var(--infoH);
       border-radius: 12px;
       background: rgba(0,0,0,0.42);
       border: 1px solid rgba(255,255,255,0.14);
@@ -319,11 +318,9 @@
       cursor:pointer;
       user-select:none;
       font-family: var(--fontMain);
-
-      pointer-events:auto;
     }
 
-    /* 토스트 (기능 동일) */
+    /* Toast */
     .toast{
       position:absolute;
       left:50%;
@@ -353,7 +350,6 @@
       display:none; align-items:flex-end; justify-content:center;
       padding: 16px;
       background: rgba(0,0,0,0.52);
-      pointer-events:auto;
     }
     .modal-backdrop.open{ display:flex; }
     .modal{
@@ -416,6 +412,19 @@
       white-space: pre-line;
       font-family: var(--fontMain);
     }
+
+    /* =========================================================
+       ✅ 낮은 화면(iPhone SE급 등) 보정: 하단 모듈 살짝 줄임
+       - JS로도 조정 가능하지만, 여기서는 CSS fallback 제공
+       ========================================================= */
+    @media (max-height: 760px){
+      :root{
+        --gap: 6px;
+        --promoH: 98px;
+        --actionH: 88px;
+        --heroMinH: 230px;
+      }
+    }
   </style>
 </head>
 
@@ -423,86 +432,101 @@
   <div class="wrap">
     <div class="canvas" id="canvas">
 
-      <div class="bg" aria-hidden="true">
+      <!-- ✅ 배경 블러(현재 광고 이미지) -->
+      <div class="bgBlur" aria-hidden="true" id="bgBlur">
         <img class="active" src="assets/bg1.webp" alt="">
         <img src="assets/bg2.webp" alt="">
         <img src="assets/bg3.webp" alt="">
         <img src="assets/bg4.webp" alt="">
       </div>
-      <div class="overlay" aria-hidden="true"></div>
+      <div class="bgDim" aria-hidden="true"></div>
 
-      <!-- ✅ UI 레이어 -->
-      <div class="uiLayer" id="uiLayer">
+      <!-- ✅ UI 모듈 레이아웃 -->
+      <div class="ui" id="ui">
 
-        <div class="dots" id="dots" aria-hidden="true"></div>
+        <!-- HERO: 광고 이미지 영역 -->
+        <div class="hero" id="hero">
+          <div class="heroSlides" aria-hidden="true" id="heroSlides">
+            <img class="active" src="assets/bg1.webp" alt="">
+            <img src="assets/bg2.webp" alt="">
+            <img src="assets/bg3.webp" alt="">
+            <img src="assets/bg4.webp" alt="">
+          </div>
 
-        <div class="promoPanel" id="promoPanel" aria-label="이벤트 가격">
-          <div class="promoOnly" aria-hidden="true">
+          <div class="dots" id="dots" aria-hidden="true"></div>
+        </div>
+
+        <!-- BOTTOM STACK: 이벤트/지점/액션/운영사정보 -->
+        <div class="bottomStack" id="bottomStack">
+
+          <div class="promoPanel" id="promoPanel" aria-label="이벤트 가격">
             <img id="promoImg" src="assets/promo.webp" alt="">
           </div>
-        </div>
 
-        <div class="branch glass" id="openBranch" role="button" tabindex="0">
-          <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
+          <div class="branch glass" id="openBranch" role="button" tabindex="0">
+            <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
 
-        <div class="action-panel glass">
-          <div class="btnRow">
-            <div class="btnCol">
-              <a class="actionPng" id="btnCall" href="#"
-                 style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
-              <div class="btnLabel">전화문의</div>
-            </div>
+          <div class="action-panel glass">
+            <div class="btnRow">
+              <div class="btnCol">
+                <a class="actionPng" id="btnCall" href="#"
+                   style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
+                <div class="btnLabel">전화문의</div>
+              </div>
 
-            <div class="btnCol">
-              <a class="actionPng" id="btnKakao" href="#"
-                 style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
-              <div class="btnLabel">카톡문의</div>
-            </div>
+              <div class="btnCol">
+                <a class="actionPng" id="btnKakao" href="#"
+                   style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
+                <div class="btnLabel">카톡문의</div>
+              </div>
 
-            <div class="btnCol">
-              <a class="actionPng" id="btnReserve" href="#"
-                 style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
-              <div class="btnLabel">네이버예약</div>
-            </div>
+              <div class="btnCol">
+                <a class="actionPng" id="btnReserve" href="#"
+                   style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
+                <div class="btnLabel">네이버예약</div>
+              </div>
 
-            <div class="btnCol">
-              <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr/9"
-                 style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
-              <div class="btnLabel">더 알아보기</div>
+              <div class="btnCol">
+                <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr/9"
+                   style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
+                <div class="btnLabel">더 알아보기</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="infoBar" id="openBiz" role="button" tabindex="0">
-          광고운영사 정보 보기
-        </div>
-
-        <div class="toast" id="toast">준비중입니다.</div>
-
-        <!-- 지점 선택 모달 -->
-        <div class="modal-backdrop" id="branchBackdrop" aria-hidden="true">
-          <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
-            <div class="modalHead">
-              <div>지점 선택</div>
-              <button id="closeBranch" type="button">닫기</button>
-            </div>
-            <div class="modalBody" id="branchList"></div>
+          <div class="infoBar" id="openBiz" role="button" tabindex="0">
+            광고운영사 정보 보기
           </div>
-        </div>
 
-        <!-- 사업자정보 모달 -->
-        <div class="modal-backdrop" id="bizBackdrop" aria-hidden="true">
-          <div class="modal" role="dialog" aria-modal="true" aria-label="광고운영사 정보">
-            <div class="modalHead">
-              <div>광고운영사 정보</div>
-              <button id="closeBiz" type="button">닫기</button>
-            </div>
-            <div class="modalBody">
-              <div class="bizText">
+        </div><!-- /bottomStack -->
+      </div><!-- /ui -->
+
+      <div class="toast" id="toast">준비중입니다.</div>
+
+      <!-- 지점 선택 모달 -->
+      <div class="modal-backdrop" id="branchBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
+          <div class="modalHead">
+            <div>지점 선택</div>
+            <button id="closeBranch" type="button">닫기</button>
+          </div>
+          <div class="modalBody" id="branchList"></div>
+        </div>
+      </div>
+
+      <!-- 사업자정보 모달 -->
+      <div class="modal-backdrop" id="bizBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="광고운영사 정보">
+          <div class="modalHead">
+            <div>광고운영사 정보</div>
+            <button id="closeBiz" type="button">닫기</button>
+          </div>
+          <div class="modalBody">
+            <div class="bizText">
 |  광고운영사 정보  |
 운영사 : ㈜브이커뮤니케이션    |    대표자 : 김정태    |    사업자등록번호 : 744-87-02865
 주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)
@@ -510,12 +534,10 @@
 
 본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.
 한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
-              </div>
             </div>
           </div>
         </div>
-
-      </div><!-- /uiLayer -->
+      </div>
 
     </div>
   </div>
@@ -593,35 +615,6 @@
         });
       }catch(e){}
     }
-
-    /* =========================================================
-       ✅ UI 스케일 + 중앙정렬(왼쪽 붙는 문제 해결)
-       ========================================================= */
-    function updateUiTransform(){
-      const canvas = document.getElementById("canvas");
-      const ui = document.getElementById("uiLayer");
-      if(!canvas || !ui) return;
-
-      const cw = canvas.clientWidth;
-      const ch = canvas.clientHeight;
-
-      const designW = 390;
-      const designH = 844;
-
-      // 캔버스 비율이 고정이지만, 안전하게 min
-      const s = Math.min(cw / designW, ch / designH);
-
-      // 스케일된 UI가 캔버스 중앙에 오도록 오프셋 계산
-      const offX = (cw - designW * s) / 2;
-      const offY = (ch - designH * s) / 2;
-
-      document.documentElement.style.setProperty("--uiScale", String(s));
-      document.documentElement.style.setProperty("--uiOffX", offX.toFixed(2) + "px");
-      document.documentElement.style.setProperty("--uiOffY", offY.toFixed(2) + "px");
-    }
-
-    window.addEventListener("resize", ()=>{ updateUiTransform(); setTimeout(applyBgFocusStabilized, 30); }, {passive:true});
-    window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ updateUiTransform(); applyBgFocusStabilized(); }, 120); }, {passive:true});
 
     /* Toast */
     const toastEl = document.getElementById("toast");
@@ -751,85 +744,21 @@
       }
     })();
 
-    /* =========================
-       ✅ 배경 포커스 (정밀 버전)
-       - promoPanel의 "실제 화면 좌표"를 canvas 기준으로 잡음
-       - iPhone 잘림/검은 여백 문제 해결 핵심
-       ========================= */
-    const DESIGN_REF_Y_RATIO = 1168 / 1688;
+    /* =========================================================
+       슬라이드(광고 이미지) + 도트 + 스와이프
+       - heroSlides(선명) + bgBlur(블러) 둘 다 동시에 전환
+       ========================================================= */
+    const canvas = document.getElementById("canvas");
 
-    function getBgOver(){
-      const v = getComputedStyle(document.documentElement).getPropertyValue("--bgOver").trim();
-      const n = parseFloat(v);
-      return Number.isFinite(n) ? n : 28;
-    }
+    const heroImgs = Array.from(document.querySelectorAll("#heroSlides img"));
+    const blurImgs = Array.from(document.querySelectorAll("#bgBlur img"));
 
-    function applyBgFocusFixed(){
-      const canvas = document.getElementById("canvas");
-      const promo  = document.getElementById("promoPanel");
-      if(!canvas || !promo) return;
-
-      const ch = canvas.clientHeight;
-      const cw = canvas.clientWidth;
-      if(!ch || !cw) return;
-
-      const over = getBgOver();
-
-      // ✅ "프로모 top"을 실제 픽셀로 얻어서 canvas 기준으로 변환
-      const canvasRect = canvas.getBoundingClientRect();
-      const promoRect  = promo.getBoundingClientRect();
-      const targetY = (promoRect.top - canvasRect.top);
-
-      const active = document.querySelector(".bg img.active");
-      if(!active) return;
-
-      const iw = active.naturalWidth || 0;
-      const ih = active.naturalHeight || 0;
-      if(!iw || !ih) return;
-
-      const boxW = cw + over * 2;
-      const boxH = ch + over * 2;
-
-      const scale = Math.max(boxW / iw, boxH / ih);
-      const dispH = ih * scale;
-
-      const refY = dispH * DESIGN_REF_Y_RATIO;
-
-      let shift = (targetY + over) - refY;
-
-      const minShift = (ch + over) - dispH;
-      const maxShift = over;
-
-      if(shift < minShift) shift = minShift;
-      if(shift > maxShift) shift = maxShift;
-
-      active.style.setProperty("--bgShift", shift.toFixed(2) + "px");
-    }
-
-    function applyBgFocusStabilized(){
-      applyBgFocusFixed();
-      requestAnimationFrame(()=>applyBgFocusFixed());
-      requestAnimationFrame(()=>requestAnimationFrame(()=>applyBgFocusFixed()));
-    }
-
-    window.addEventListener("load", () => setTimeout(applyBgFocusStabilized, 180), {once:true});
-
-    (function(){
-      const p = document.getElementById("promoImg");
-      if(!p) return;
-      if(p.complete) { setTimeout(applyBgFocusStabilized, 60); return; }
-      p.addEventListener("load", ()=> setTimeout(applyBgFocusStabilized, 60), {once:true});
-    })();
-
-    /* 슬라이드 + 도트 + 스와이프 */
-    const canvas=document.getElementById("canvas");
-    const slides=Array.from(document.querySelectorAll(".bg img"));
-    const dotsWrap=document.getElementById("dots");
+    const dotsWrap = document.getElementById("dots");
     let idx=0, timer=null, pausedUntil=0;
 
     function buildDots(){
       dotsWrap.innerHTML="";
-      slides.forEach((_,i)=>{
+      heroImgs.forEach((_,i)=>{
         const d=document.createElement("div");
         d.className="dot"+(i===idx?" on":"");
         dotsWrap.appendChild(d);
@@ -841,11 +770,15 @@
     }
 
     function showSlide(n){
-      slides[idx].classList.remove("active");
-      idx=(n+slides.length)%slides.length;
-      slides[idx].classList.add("active");
+      heroImgs[idx].classList.remove("active");
+      blurImgs[idx].classList.remove("active");
+
+      idx=(n+heroImgs.length)%heroImgs.length;
+
+      heroImgs[idx].classList.add("active");
+      blurImgs[idx].classList.add("active");
+
       setDots();
-      setTimeout(applyBgFocusStabilized, 30);
     }
 
     function next(){ showSlide(idx+1); }
@@ -864,11 +797,7 @@
     buildDots();
     startAuto();
 
-    slides.forEach(img=>{
-      if(img.complete) return;
-      img.addEventListener("load", ()=> setTimeout(applyBgFocusStabilized, 60), {once:true});
-    });
-
+    /* 스와이프 */
     let x0=null,y0=null,moved=false;
     canvas.addEventListener("touchstart",(e)=>{
       if(!e.touches||e.touches.length!==1) return;
@@ -893,11 +822,11 @@
       x0=null;y0=null;moved=false;
     },{passive:true});
 
-    /* ✅ 초기화 */
-    (function init(){
-      updateUiTransform();
-      setTimeout(applyBgFocusStabilized, 220);
-    })();
+    /* 이미지 로드 안정화(깜빡임 방지용) */
+    [...heroImgs, ...blurImgs].forEach(img=>{
+      if(img.complete) return;
+      img.addEventListener("load", ()=>{}, {once:true});
+    });
   </script>
 </body>
 </html>

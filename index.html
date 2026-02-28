@@ -624,15 +624,21 @@
     function getDeviceType(){
       return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ? "mobile" : "pc";
     }
+
+    /* ✅ FIX: crypto 직접 참조 -> window.crypto로 안전 가드 */
     function getSessionId(){
       const k="HB_LANDING_SID";
       let v=localStorage.getItem(k);
       if(!v){
-        v=(crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+"_"+Math.random().toString(16).slice(2));
+        const c = (typeof window !== "undefined") ? window.crypto : null;
+        v = (c && typeof c.randomUUID === "function")
+          ? c.randomUUID()
+          : (Date.now()+"_"+Math.random().toString(16).slice(2));
         localStorage.setItem(k,v);
       }
       return v;
     }
+
     function toTelHref(phone){
       const digits = String(phone || "").replace(/[^\d]/g,"");
       return digits ? ("tel:" + digits) : "";
@@ -835,22 +841,19 @@
       // 이미지 내부 기준 refY
       const refY = dispH * DESIGN_REF_Y_RATIO;
 
-      // 이미지 top을 0으로 두고 translateY로 맞춘다:
       // shift + refY = targetY  => shift = targetY - refY
       let shift = targetY - refY;
 
-      // clamp: 위로는 0(더 내리면 상단 빈공간) / 아래로는 (ch - dispH)(더 올리면 하단 빈공간)
+      // clamp
       const minShift = ch - dispH;
       const maxShift = 0;
       if(shift < minShift) shift = minShift;
       if(shift > maxShift) shift = maxShift;
 
-      // 적용
       active.style.setProperty("--bgShift", shift.toFixed(2) + "px");
     }
 
     function applyBgFocusAllSlides(){
-      // active만 적용 (성능/일관성)
       applyBgFocusFixed();
     }
 
@@ -882,8 +885,6 @@
       idx=(n+slides.length)%slides.length;
       slides[idx].classList.add("active");
       setDots();
-
-      // ✅ 슬라이드 변경 즉시 포커스 재적용
       setTimeout(applyBgFocusAllSlides, 40);
     }
 
@@ -903,7 +904,6 @@
     buildDots();
     startAuto();
 
-    // 이미지 로드 타이밍 보정
     slides.forEach(img=>{
       if(img.complete) return;
       img.addEventListener("load", ()=> setTimeout(applyBgFocusAllSlides, 60), {once:true});

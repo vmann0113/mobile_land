@@ -9,6 +9,9 @@
     :root{
       --maxW: 520px;
 
+      /* ✅ 전체 폰트(프레젠테이션) */
+      --fontMain: "Presentation", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
+
       /* glass */
       --glass-bg: rgba(255,255,255,0.15);
       --glass-border: rgba(255,255,255,0.16);
@@ -17,9 +20,12 @@
       --gap: 5px;
       --safeB: env(safe-area-inset-bottom);
 
+      /* ✅ 전체를 5px 아래로 (12px -> 7px) */
+      --baseBottom: 7px;
+
       /* ✅ 높이 다이어트 */
-      --infoH: 30px;      /* ✅ 42 -> 30 */
-      --actionH: 92px;    /* ✅ 104 -> 92 */
+      --infoH: 30px;
+      --actionH: 92px;
       --branchH: 34.5px;
       --dotsH: 10px;
 
@@ -35,21 +41,21 @@
       --wine2: #6a2626;
       --wine3: #4f1b1b;
 
-      /* ✅ 배경 미세 스케일(검은바 방지) */
-      --bgScale: 1.03;
+      /* ✅ 배경: 검은바 방지 강화 */
+      --bgScale: 1.07;
     }
 
     *{ box-sizing:border-box; }
     html,body{ height:100%; margin:0; }
     body{
       background:#0b0b0b;
-      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
+      font-family: var(--fontMain);
       overflow:hidden;
       -webkit-text-size-adjust:100%;
       text-size-adjust:100%;
     }
 
-    /* ✅ Paperlogy 폰트(assets에 넣는 방식) */
+    /* (유지) Paperlogy 폰트 파일은 남겨두되, 현재는 사용 안 함 */
     @font-face{
       font-family: "Paperlogy";
       src: url("assets/fonts/Paperlogy-Bold.woff2") format("woff2");
@@ -98,16 +104,19 @@
     }
     .bg img{
       position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
+
+      /* ✅ 오버드로우(검은바 방지): 살짝 크게 깔고 translate/scale */
+      top:-3px; left:-3px;
+      width: calc(100% + 6px);
+      height: calc(100% + 6px);
+
       object-fit: cover;
       object-position: top center;
+
       opacity:0;
       transition: opacity .6s ease;
       filter: contrast(1.08) saturate(1.05);
 
-      /* ✅ scale을 기본으로 깔고 translateY 적용 (검은바 방지) */
       transform: translate3d(0, var(--bgShift, 0px), 0) scale(var(--bgScale));
       transform-origin: center center;
 
@@ -143,7 +152,7 @@
       left: calc(16.5 / 390 * 100%);
       width: calc(357 / 390 * 100%);
       height: var(--infoH);
-      bottom: calc(12px + var(--safeB));
+      bottom: calc(var(--baseBottom) + var(--safeB));
       border-radius: 12px;
       background: rgba(0,0,0,0.42);
       border: 1px solid rgba(255,255,255,0.14);
@@ -151,7 +160,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size: 11px;     /* ✅ 살짝 다운 */
+      font-size: 11px;
       font-weight: 900;
       cursor:pointer;
       user-select:none;
@@ -163,9 +172,9 @@
       left: calc(16.5 / 390 * 100%);
       width: calc(357 / 390 * 100%);
       height: var(--actionH);
-      bottom: calc(12px + var(--safeB) + var(--infoH) + var(--gap));
+      bottom: calc(var(--baseBottom) + var(--safeB) + var(--infoH) + var(--gap));
       border-radius: 22px;
-      padding: 8px 10px;   /* ✅ padding 다운 */
+      padding: 8px 10px;
       display:flex;
       align-items:flex-start;
       justify-content:center;
@@ -175,20 +184,20 @@
       width:100%;
       display:flex;
       justify-content:space-between;
-      padding: 0 12px;     /* ✅ 다운 */
-      gap: 12px;           /* ✅ 다운 */
+      padding: 0 12px;
+      gap: 12px;
     }
     .btnCol{
-      width:56px;          /* ✅ 64 -> 56 */
+      width:56px;
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap:5px;             /* ✅ 다운 */
+      gap:5px;
       flex: 0 0 auto;
     }
 
     .actionPng{
-      width:56px; height:56px; /* ✅ 64 -> 56 */
+      width:56px; height:56px;
       border-radius:16px;
       background-size:cover;
       background-position:center;
@@ -201,7 +210,7 @@
     .actionPng:active{ transform: translateY(1px); }
 
     .btnLabel{
-      font-size:10px;      /* ✅ 다운 */
+      font-size:10px;
       font-weight:900;
       color: rgba(255,255,255,0.88);
       text-shadow: 0 1px 8px rgba(0,0,0,0.45);
@@ -209,6 +218,7 @@
       line-height:1;
       user-select:none;
       white-space:nowrap;
+      font-family: var(--fontMain);
     }
 
     .branch{
@@ -218,7 +228,7 @@
       width: calc(357 / 390 * 100%);
       height: var(--branchH);
       bottom: calc(
-        12px + var(--safeB)
+        var(--baseBottom) + var(--safeB)
         + var(--infoH) + var(--gap)
         + var(--actionH) + var(--gap)
       );
@@ -232,6 +242,7 @@
       color: rgba(255,255,255,0.92);
       text-shadow: 0 1px 8px rgba(0,0,0,0.45);
       gap: 8px;
+      font-family: var(--fontMain);
     }
     .branch .txt{
       font-weight:900;
@@ -257,7 +268,7 @@
       width: calc(357 / 390 * 100%);
       height: var(--promoH);
       bottom: calc(
-        12px + var(--safeB)
+        var(--baseBottom) + var(--safeB)
         + var(--infoH) + var(--gap)
         + var(--actionH) + var(--gap)
         + var(--branchH) + var(--gapPromoToBranch)
@@ -267,7 +278,8 @@
       display:flex;
       flex-direction:column;
       gap: 6px;
-      overflow:hidden; /* ✅ 이미지 깔끔하게 */
+      overflow:hidden;
+      font-family: var(--fontMain);
     }
 
     /* 이미지 레이어 */
@@ -276,23 +288,18 @@
       inset:0;
       z-index:0;
       pointer-events:none;
-      opacity:0;           /* ✅ 기본은 숨김, JS에서 파일 있으면 켬 */
+      opacity:0;
     }
+    /* ✅ 크롭 방지: contain으로 전체 보이게 */
     .promoBg img{
       width:100%;
       height:100%;
-      object-fit: cover;
+      object-fit: contain;         /* ✅ 여기 */
+      object-position: center;     /* ✅ 여기 */
       display:block;
-      filter: contrast(1.05) saturate(1.02);
-    }
-    /* 이미지 위 가독성 살짝 */
-    .promoBg::after{
-      content:"";
-      position:absolute; inset:0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.10), rgba(0,0,0,0.25));
+      background: rgba(255,255,255,0.10); /* 이미지 남는 여백이 생기면 자연스럽게 */
     }
 
-    /* 콘텐츠 레이어 */
     .promoContent{
       position:relative;
       z-index:1;
@@ -324,8 +331,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      font-family: "Paperlogy", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
-      font-weight: 800;
+      font-weight: 900;
       font-size: 15px;
       color: #fff;
       letter-spacing: -0.04em;
@@ -333,6 +339,7 @@
         linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 55%),
         linear-gradient(180deg, var(--wine1) 0%, var(--wine2) 55%, var(--wine3) 100%);
       text-shadow: 0 1px 6px rgba(0,0,0,0.25);
+      font-family: var(--fontMain);
     }
 
     .promoBody{
@@ -346,8 +353,7 @@
     }
 
     .promoWas{
-      font-family: "Paperlogy", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
-      font-weight: 700;
+      font-weight: 900;
       font-size: 16px;
       color: rgba(0,0,0,0.55);
       letter-spacing: -0.04em;
@@ -356,6 +362,7 @@
       text-decoration-color: rgba(0,0,0,0.45);
       text-underline-offset: 3px;
       white-space:nowrap;
+      font-family: var(--fontMain);
     }
 
     .promoArrow{
@@ -364,6 +371,7 @@
       color: rgba(111,45,45,0.78);
       margin: 0 6px;
       white-space:nowrap;
+      font-family: var(--fontMain);
     }
 
     .promoNow{
@@ -371,17 +379,17 @@
       align-items:baseline;
       gap:3px;
       white-space:nowrap;
-      font-family: "Paperlogy", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
+      font-family: var(--fontMain);
     }
     .promoNow .num{
-      font-weight: 800;
+      font-weight: 900;
       font-size: 38px;
       letter-spacing: -0.06em;
       color: rgba(111,45,45,0.98);
       line-height: 1;
     }
     .promoNow .unit{
-      font-weight: 700;
+      font-weight: 900;
       font-size: 18px;
       letter-spacing: -0.05em;
       color: rgba(0,0,0,0.62);
@@ -395,6 +403,7 @@
       letter-spacing: -0.02em;
       opacity: 0.98;
       padding-left: 2px;
+      font-family: var(--fontMain);
     }
 
     /* ✅ 도트: 프로모 위로 */
@@ -404,7 +413,7 @@
       left:50%;
       transform:translateX(-50%);
       bottom: calc(
-        12px + var(--safeB)
+        var(--baseBottom) + var(--safeB)
         + var(--infoH) + var(--gap)
         + var(--actionH) + var(--gap)
         + var(--branchH) + var(--gapPromoToBranch)
@@ -423,7 +432,7 @@
       transform:translateX(-50%);
       z-index: 30;
       bottom: calc(
-        12px + var(--safeB)
+        var(--baseBottom) + var(--safeB)
         + var(--infoH) + var(--gap)
         + var(--actionH) + 14px
       );
@@ -437,6 +446,7 @@
       pointer-events:none;
       transition: opacity .18s ease, transform .18s ease;
       white-space:nowrap;
+      font-family: var(--fontMain);
     }
     .toast.show{
       opacity: 1;
@@ -459,6 +469,7 @@
       overflow:hidden;
       background: rgba(255,255,255,0.92);
       border: 1px solid rgba(255,255,255,0.22);
+      font-family: var(--fontMain);
     }
     .modalHead{
       display:flex; align-items:center; justify-content:space-between;
@@ -473,6 +484,7 @@
       border:none; background:transparent; cursor:pointer;
       font-weight:900; font-size: 13px;
       color: rgba(15,23,42,0.65);
+      font-family: var(--fontMain);
     }
     .modalBody{
       padding: 10px 0;
@@ -509,6 +521,7 @@
       line-height: 1.45;
       color: rgba(15,23,42,0.82);
       white-space: pre-line;
+      font-family: var(--fontMain);
     }
 
     @media (max-width: 360px){
@@ -856,7 +869,7 @@
     /* =========================
        ✅ 배경 포커스 고정 + 검은바 방지(여유값/스케일)
        ========================= */
-    const DESIGN_REF_Y_RATIO = 1168 / 1688; // 약 0.6915
+    const DESIGN_REF_Y_RATIO = 1168 / 1688;
 
     function applyBgFocusFixed(){
       const canvas = document.getElementById("canvas");
@@ -867,7 +880,6 @@
       const cw = canvas.clientWidth;
       if(!ch || !cw) return;
 
-      // 목표 라인: promoPanel top - 6px
       const targetY = promo.offsetTop - 6;
 
       const active = document.querySelector(".bg img.active");
@@ -877,15 +889,13 @@
       const ih = active.naturalHeight || 0;
       if(!iw || !ih) return;
 
-      // cover 스케일
       const scale = Math.max(cw / iw, ch / ih);
       const dispH = ih * scale;
 
       const refY = dispH * DESIGN_REF_Y_RATIO;
       let shift = targetY - refY;
 
-      // ✅ 여유(bleed)로 바 방지
-      const bleed = 24; // px
+      const bleed = 28;
       const minShift = (ch - dispH) - bleed;
       const maxShift = 0 + bleed;
 
@@ -912,7 +922,6 @@
 
       function enableImageMode(){
         bg.style.opacity = "1";
-        // 카드형은 숨김 (원하면 0.2 정도로 살려도 됨)
         content.style.display = "none";
       }
       function enableCardMode(){
@@ -920,12 +929,9 @@
         content.style.display = "";
       }
 
-      // 이미지 로드 성공 시 이미지 모드
       img.addEventListener("load", enableImageMode, {once:true});
-      // 로드 실패 시 카드 모드
       img.addEventListener("error", enableCardMode, {once:true});
 
-      // 캐시로 이미 로드된 경우
       if(img.complete && img.naturalWidth > 0) enableImageMode();
     })();
 

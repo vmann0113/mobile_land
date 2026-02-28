@@ -17,22 +17,26 @@
       --gap: 5px;
       --safeB: env(safe-area-inset-bottom);
 
-      --infoH: 42px;
-      --actionH: 104px;  /* ✅ 3px 줄임(107 -> 104) */
+      /* ✅ 높이 다이어트 */
+      --infoH: 30px;      /* ✅ 42 -> 30 */
+      --actionH: 92px;    /* ✅ 104 -> 92 */
       --branchH: 34.5px;
       --dotsH: 10px;
 
-      /* ✅ promo height (5px 줄임) */
+      /* promo */
       --promoH: 113px;
 
-      /* ✅ 간격 미세 조절용 */
-      --gapPromoToBranch: 2px; /* 프로모와 지점선택 사이 간격(좁게) */
-      --gapDotsToPromo: 6px;   /* 도트와 프로모 사이 간격 */
+      /* gaps */
+      --gapPromoToBranch: 2px;
+      --gapDotsToPromo: 6px;
 
       /* Hanbeam Wine */
       --wine1: #7b2e2e;
       --wine2: #6a2626;
       --wine3: #4f1b1b;
+
+      /* ✅ 배경 미세 스케일(검은바 방지) */
+      --bgScale: 1.03;
     }
 
     *{ box-sizing:border-box; }
@@ -90,6 +94,7 @@
       inset:0;
       z-index:0;
       overflow:hidden;
+      background:#000;
     }
     .bg img{
       position:absolute;
@@ -101,7 +106,11 @@
       opacity:0;
       transition: opacity .6s ease;
       filter: contrast(1.08) saturate(1.05);
-      transform: translate3d(0, var(--bgShift, 0px), 0);
+
+      /* ✅ scale을 기본으로 깔고 translateY 적용 (검은바 방지) */
+      transform: translate3d(0, var(--bgShift, 0px), 0) scale(var(--bgScale));
+      transform-origin: center center;
+
       will-change: opacity, transform;
     }
     .bg img.active{ opacity:1; }
@@ -135,14 +144,14 @@
       width: calc(357 / 390 * 100%);
       height: var(--infoH);
       bottom: calc(12px + var(--safeB));
-      border-radius: 14px;
+      border-radius: 12px;
       background: rgba(0,0,0,0.42);
       border: 1px solid rgba(255,255,255,0.14);
       color: rgba(255,255,255,0.92);
       display:flex;
       align-items:center;
       justify-content:center;
-      font-size: 12px;
+      font-size: 11px;     /* ✅ 살짝 다운 */
       font-weight: 900;
       cursor:pointer;
       user-select:none;
@@ -156,7 +165,7 @@
       height: var(--actionH);
       bottom: calc(12px + var(--safeB) + var(--infoH) + var(--gap));
       border-radius: 22px;
-      padding: 10px 12px;
+      padding: 8px 10px;   /* ✅ padding 다운 */
       display:flex;
       align-items:flex-start;
       justify-content:center;
@@ -166,21 +175,21 @@
       width:100%;
       display:flex;
       justify-content:space-between;
-      padding: 0 14px;
-      gap: 14px;
+      padding: 0 12px;     /* ✅ 다운 */
+      gap: 12px;           /* ✅ 다운 */
     }
     .btnCol{
-      width:64px;
+      width:56px;          /* ✅ 64 -> 56 */
       display:flex;
       flex-direction:column;
       align-items:center;
-      gap:6px;
+      gap:5px;             /* ✅ 다운 */
       flex: 0 0 auto;
     }
 
     .actionPng{
-      width:64px;height:64px;
-      border-radius:18px;
+      width:56px; height:56px; /* ✅ 64 -> 56 */
+      border-radius:16px;
       background-size:cover;
       background-position:center;
       background-repeat:no-repeat;
@@ -192,7 +201,7 @@
     .actionPng:active{ transform: translateY(1px); }
 
     .btnLabel{
-      font-size:11px;
+      font-size:10px;      /* ✅ 다운 */
       font-weight:900;
       color: rgba(255,255,255,0.88);
       text-shadow: 0 1px 8px rgba(0,0,0,0.45);
@@ -240,27 +249,56 @@
     }
     .branch svg path{ stroke: rgba(255,255,255,0.92); }
 
-    /* ✅ 프로모: 이제 '지점 선택 바로 위'에 붙게(간격 축소) */
+    /* ✅ 프로모: 이미지 삽입 가능 (assets/promo.webp) + fallback 카드형 */
     .promoPanel{
       position:absolute;
       z-index:10;
       left: calc(16.5 / 390 * 100%);
       width: calc(357 / 390 * 100%);
       height: var(--promoH);
-
-      /* ✅ dotsH 제거! (간격 벌어지던 원인) */
       bottom: calc(
         12px + var(--safeB)
         + var(--infoH) + var(--gap)
         + var(--actionH) + var(--gap)
         + var(--branchH) + var(--gapPromoToBranch)
       );
-
       border-radius: 22px;
       padding: 10px;
       display:flex;
       flex-direction:column;
       gap: 6px;
+      overflow:hidden; /* ✅ 이미지 깔끔하게 */
+    }
+
+    /* 이미지 레이어 */
+    .promoBg{
+      position:absolute;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      opacity:0;           /* ✅ 기본은 숨김, JS에서 파일 있으면 켬 */
+    }
+    .promoBg img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
+      filter: contrast(1.05) saturate(1.02);
+    }
+    /* 이미지 위 가독성 살짝 */
+    .promoBg::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.10), rgba(0,0,0,0.25));
+    }
+
+    /* 콘텐츠 레이어 */
+    .promoContent{
+      position:relative;
+      z-index:1;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
     }
 
     .promoRow{
@@ -352,14 +390,14 @@
     .promoFoot{
       font-size: 11px;
       font-weight: 900;
-      color: rgba(255,255,255,0.88);
-      text-shadow: 0 1px 8px rgba(0,0,0,0.40);
+      color: rgba(255,255,255,0.90);
+      text-shadow: 0 1px 8px rgba(0,0,0,0.45);
       letter-spacing: -0.02em;
-      opacity: 0.95;
+      opacity: 0.98;
       padding-left: 2px;
     }
 
-    /* ✅ 도트: 프로모 위로 올림 */
+    /* ✅ 도트: 프로모 위로 */
     .dots{
       position:absolute;
       z-index:10;
@@ -387,7 +425,7 @@
       bottom: calc(
         12px + var(--safeB)
         + var(--infoH) + var(--gap)
-        + var(--actionH) + 18px
+        + var(--actionH) + 14px
       );
       padding: 10px 14px;
       border-radius: 999px;
@@ -477,6 +515,8 @@
       .promoHead{ font-size: 14px; }
       .promoNow .num{ font-size: 34px; }
       .promoWas{ font-size: 15px; }
+      .btnCol{ width:54px; }
+      .actionPng{ width:54px; height:54px; }
     }
   </style>
 </head>
@@ -496,35 +536,43 @@
       <div class="dots" id="dots" aria-hidden="true"></div>
 
       <div class="promoPanel glass" id="promoPanel" aria-label="이벤트 가격">
-        <div class="promoRow">
-          <div class="promoCard">
-            <div class="promoHead" id="promoATitle">웨딩 촬영용 한복대여</div>
-            <div class="promoBody">
-              <div style="display:flex;align-items:baseline;gap:8px;">
-                <span class="promoWas" id="promoAWas">20만원</span>
-                <span class="promoArrow">›</span>
-              </div>
-              <div class="promoNow">
-                <span class="num" id="promoANow">11</span><span class="unit">만원</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="promoCard">
-            <div class="promoHead" id="promoBTitle">결혼식 한복대여</div>
-            <div class="promoBody">
-              <div style="display:flex;align-items:baseline;gap:8px;">
-                <span class="promoWas" id="promoBWas">33만원</span>
-                <span class="promoArrow">›</span>
-              </div>
-              <div class="promoNow">
-                <span class="num" id="promoBNow">25</span><span class="unit">만원</span>
-              </div>
-            </div>
-          </div>
+        <!-- ✅ 이미지형 프로모 (assets/promo.webp) -->
+        <div class="promoBg" id="promoBg" aria-hidden="true">
+          <img id="promoImg" src="assets/promo.webp" alt="">
         </div>
 
-        <div class="promoFoot">본 가격은 기간 이벤트 가격입니다. 변동될 수 있습니다.</div>
+        <!-- ✅ 기존 카드형(이미지 없으면 자동 표시) -->
+        <div class="promoContent" id="promoContent">
+          <div class="promoRow">
+            <div class="promoCard">
+              <div class="promoHead" id="promoATitle">웨딩 촬영용 한복대여</div>
+              <div class="promoBody">
+                <div style="display:flex;align-items:baseline;gap:8px;">
+                  <span class="promoWas" id="promoAWas">20만원</span>
+                  <span class="promoArrow">›</span>
+                </div>
+                <div class="promoNow">
+                  <span class="num" id="promoANow">11</span><span class="unit">만원</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="promoCard">
+              <div class="promoHead" id="promoBTitle">결혼식 한복대여</div>
+              <div class="promoBody">
+                <div style="display:flex;align-items:baseline;gap:8px;">
+                  <span class="promoWas" id="promoBWas">33만원</span>
+                  <span class="promoArrow">›</span>
+                </div>
+                <div class="promoNow">
+                  <span class="num" id="promoBNow">25</span><span class="unit">만원</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="promoFoot">본 가격은 기간 이벤트 가격입니다. 변동될 수 있습니다.</div>
+        </div>
       </div>
 
       <div class="branch glass" id="openBranch" role="button" tabindex="0">
@@ -625,7 +673,6 @@
       return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ? "mobile" : "pc";
     }
 
-    /* ✅ FIX: crypto 직접 참조 -> window.crypto로 안전 가드 */
     function getSessionId(){
       const k="HB_LANDING_SID";
       let v=localStorage.getItem(k);
@@ -807,9 +854,7 @@
     })();
 
     /* =========================
-       ✅ 배경 포커스 고정(요청 4)
-       - 디자인 기준 y=1168 (1688 기준) 위치가
-       - "가격 이벤트 바로 위 라인"에 오도록
+       ✅ 배경 포커스 고정 + 검은바 방지(여유값/스케일)
        ========================= */
     const DESIGN_REF_Y_RATIO = 1168 / 1688; // 약 0.6915
 
@@ -822,31 +867,28 @@
       const cw = canvas.clientWidth;
       if(!ch || !cw) return;
 
-      // ✅ 목표 라인: promoPanel의 top에서 6px 위
+      // 목표 라인: promoPanel top - 6px
       const targetY = promo.offsetTop - 6;
 
-      // 활성 슬라이드 찾기
       const active = document.querySelector(".bg img.active");
       if(!active) return;
 
-      // 이미지 원본 크기 필요
       const iw = active.naturalWidth || 0;
       const ih = active.naturalHeight || 0;
       if(!iw || !ih) return;
 
-      // cover 스케일 계산
+      // cover 스케일
       const scale = Math.max(cw / iw, ch / ih);
       const dispH = ih * scale;
 
-      // 이미지 내부 기준 refY
       const refY = dispH * DESIGN_REF_Y_RATIO;
-
-      // shift + refY = targetY  => shift = targetY - refY
       let shift = targetY - refY;
 
-      // clamp
-      const minShift = ch - dispH;
-      const maxShift = 0;
+      // ✅ 여유(bleed)로 바 방지
+      const bleed = 24; // px
+      const minShift = (ch - dispH) - bleed;
+      const maxShift = 0 + bleed;
+
       if(shift < minShift) shift = minShift;
       if(shift > maxShift) shift = maxShift;
 
@@ -860,6 +902,32 @@
     window.addEventListener("resize", () => setTimeout(applyBgFocusAllSlides, 80), {passive:true});
     window.addEventListener("orientationchange", () => setTimeout(applyBgFocusAllSlides, 150), {passive:true});
     window.addEventListener("load", () => setTimeout(applyBgFocusAllSlides, 200), {once:true});
+
+    /* ✅ 프로모 이미지 존재하면 이미지형으로 전환 (없으면 카드형 유지) */
+    (function promoImageToggle(){
+      const bg = document.getElementById("promoBg");
+      const img = document.getElementById("promoImg");
+      const content = document.getElementById("promoContent");
+      if(!bg || !img || !content) return;
+
+      function enableImageMode(){
+        bg.style.opacity = "1";
+        // 카드형은 숨김 (원하면 0.2 정도로 살려도 됨)
+        content.style.display = "none";
+      }
+      function enableCardMode(){
+        bg.style.opacity = "0";
+        content.style.display = "";
+      }
+
+      // 이미지 로드 성공 시 이미지 모드
+      img.addEventListener("load", enableImageMode, {once:true});
+      // 로드 실패 시 카드 모드
+      img.addEventListener("error", enableCardMode, {once:true});
+
+      // 캐시로 이미 로드된 경우
+      if(img.complete && img.naturalWidth > 0) enableImageMode();
+    })();
 
     /* 슬라이드 + 도트 + 스와이프 */
     const canvas=document.getElementById("canvas");

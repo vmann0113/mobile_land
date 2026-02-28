@@ -20,16 +20,14 @@
       --gap: 5px;
       --safeB: env(safe-area-inset-bottom);
 
-      /* ✅ 전체를 5px 아래로 (12px -> 7px) */
+      /* ✅ 전체를 5px 아래로 (12 -> 7) */
       --baseBottom: 7px;
 
-      /* ✅ 높이 다이어트 */
+      /* heights */
       --infoH: 30px;
       --actionH: 92px;
       --branchH: 34.5px;
       --dotsH: 10px;
-
-      /* promo */
       --promoH: 113px;
 
       /* gaps */
@@ -41,8 +39,8 @@
       --wine2: #6a2626;
       --wine3: #4f1b1b;
 
-      /* ✅ 배경: 검은바 방지 강화 */
-      --bgScale: 1.07;
+      /* ✅ 배경 오버드로우(검은바 방지 핵심) */
+      --bgOver: 24px;
     }
 
     *{ box-sizing:border-box; }
@@ -104,11 +102,11 @@
     }
     .bg img{
       position:absolute;
-
-      /* ✅ 오버드로우(검은바 방지): 살짝 크게 깔고 translate/scale */
-      top:-3px; left:-3px;
-      width: calc(100% + 6px);
-      height: calc(100% + 6px);
+      /* ✅ 오버드로우로 빈틈 방지 (scale 제거) */
+      top: calc(var(--bgOver) * -1);
+      left: calc(var(--bgOver) * -1);
+      width: calc(100% + (var(--bgOver) * 2));
+      height: calc(100% + (var(--bgOver) * 2));
 
       object-fit: cover;
       object-position: top center;
@@ -117,9 +115,7 @@
       transition: opacity .6s ease;
       filter: contrast(1.08) saturate(1.05);
 
-      transform: translate3d(0, var(--bgShift, 0px), 0) scale(var(--bgScale));
-      transform-origin: center center;
-
+      transform: translate3d(0, var(--bgShift, 0px), 0);
       will-change: opacity, transform;
     }
     .bg img.active{ opacity:1; }
@@ -142,9 +138,7 @@
         inset 0 1px 0 rgba(255,255,255,0.35);
     }
 
-    /* ===== 하단 스택 =====
-       infoBar(bottom) -> actionPanel -> branch -> promo -> dots
-    */
+    /* ===== 하단 스택 ===== */
 
     .infoBar{
       position:absolute;
@@ -260,7 +254,7 @@
     }
     .branch svg path{ stroke: rgba(255,255,255,0.92); }
 
-    /* ✅ 프로모: 이미지 삽입 가능 (assets/promo.webp) + fallback 카드형 */
+    /* ✅ 프로모: 2레이어(채움 + 본이미지) */
     .promoPanel{
       position:absolute;
       z-index:10;
@@ -274,32 +268,45 @@
         + var(--branchH) + var(--gapPromoToBranch)
       );
       border-radius: 22px;
-      padding: 10px;
-      display:flex;
-      flex-direction:column;
-      gap: 6px;
       overflow:hidden;
+      padding: 10px;
       font-family: var(--fontMain);
     }
 
-    /* 이미지 레이어 */
+    /* ✅ 이미지 레이어(배경 채움) */
     .promoBg{
       position:absolute;
       inset:0;
       z-index:0;
       pointer-events:none;
-      opacity:0;
+      opacity:0; /* JS에서 이미지 있으면 1 */
     }
-    /* ✅ 크롭 방지: contain으로 전체 보이게 */
-    .promoBg img{
-      width:100%;
-      height:100%;
-      object-fit: contain;         /* ✅ 여기 */
-      object-position: center;     /* ✅ 여기 */
-      display:block;
-      background: rgba(255,255,255,0.10); /* 이미지 남는 여백이 생기면 자연스럽게 */
+    /* cover 채움(블러 배경) */
+    .promoBg .fill{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit: cover;
+      object-position:center;
+      filter: blur(10px) saturate(1.05) contrast(1.05);
+      transform: scale(1.08);
+      opacity: 0.95;
+    }
+    .promoBg::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.55));
+    }
+    /* contain 본이미지(투명 포함, 전체 표시) */
+    .promoBg .main{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit: contain;
+      object-position:center;
+      filter: none;
+      opacity: 1;
     }
 
+    /* ✅ 카드형 fallback(이미지 없을 때만 보임) */
     .promoContent{
       position:relative;
       z-index:1;
@@ -308,11 +315,7 @@
       gap:6px;
     }
 
-    .promoRow{
-      width:100%;
-      display:flex;
-      gap:10px;
-    }
+    .promoRow{ width:100%; display:flex; gap:10px; }
 
     .promoCard{
       flex:1 1 0;
@@ -339,7 +342,6 @@
         linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 55%),
         linear-gradient(180deg, var(--wine1) 0%, var(--wine2) 55%, var(--wine3) 100%);
       text-shadow: 0 1px 6px rgba(0,0,0,0.25);
-      font-family: var(--fontMain);
     }
 
     .promoBody{
@@ -362,24 +364,19 @@
       text-decoration-color: rgba(0,0,0,0.45);
       text-underline-offset: 3px;
       white-space:nowrap;
-      font-family: var(--fontMain);
     }
-
     .promoArrow{
       font-weight: 900;
       font-size: 16px;
       color: rgba(111,45,45,0.78);
       margin: 0 6px;
       white-space:nowrap;
-      font-family: var(--fontMain);
     }
-
     .promoNow{
       display:flex;
       align-items:baseline;
       gap:3px;
       white-space:nowrap;
-      font-family: var(--fontMain);
     }
     .promoNow .num{
       font-weight: 900;
@@ -403,10 +400,8 @@
       letter-spacing: -0.02em;
       opacity: 0.98;
       padding-left: 2px;
-      font-family: var(--fontMain);
     }
 
-    /* ✅ 도트: 프로모 위로 */
     .dots{
       position:absolute;
       z-index:10;
@@ -523,14 +518,6 @@
       white-space: pre-line;
       font-family: var(--fontMain);
     }
-
-    @media (max-width: 360px){
-      .promoHead{ font-size: 14px; }
-      .promoNow .num{ font-size: 34px; }
-      .promoWas{ font-size: 15px; }
-      .btnCol{ width:54px; }
-      .actionPng{ width:54px; height:54px; }
-    }
   </style>
 </head>
 
@@ -549,12 +536,13 @@
       <div class="dots" id="dots" aria-hidden="true"></div>
 
       <div class="promoPanel glass" id="promoPanel" aria-label="이벤트 가격">
-        <!-- ✅ 이미지형 프로모 (assets/promo.webp) -->
+        <!-- ✅ 이미지형(2레이어) -->
         <div class="promoBg" id="promoBg" aria-hidden="true">
-          <img id="promoImg" src="assets/promo.webp" alt="">
+          <img class="fill" id="promoFill" src="assets/promo.webp" alt="">
+          <img class="main" id="promoMain" src="assets/promo.webp" alt="">
         </div>
 
-        <!-- ✅ 기존 카드형(이미지 없으면 자동 표시) -->
+        <!-- ✅ 카드형 fallback -->
         <div class="promoContent" id="promoContent">
           <div class="promoRow">
             <div class="promoCard">
@@ -867,9 +855,16 @@
     })();
 
     /* =========================
-       ✅ 배경 포커스 고정 + 검은바 방지(여유값/스케일)
+       ✅ 배경 포커스 고정(검은바 완전 방지 버전)
+       - 오버드로우(--bgOver) 포함해서 clamp 재계산
        ========================= */
     const DESIGN_REF_Y_RATIO = 1168 / 1688;
+
+    function getBgOver(){
+      const v = getComputedStyle(document.documentElement).getPropertyValue("--bgOver").trim();
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : 24;
+    }
 
     function applyBgFocusFixed(){
       const canvas = document.getElementById("canvas");
@@ -880,7 +875,8 @@
       const cw = canvas.clientWidth;
       if(!ch || !cw) return;
 
-      const targetY = promo.offsetTop - 6;
+      const over = getBgOver();
+      const targetY = promo.offsetTop - 6; // canvas 기준
 
       const active = document.querySelector(".bg img.active");
       if(!active) return;
@@ -889,15 +885,25 @@
       const ih = active.naturalHeight || 0;
       if(!iw || !ih) return;
 
-      const scale = Math.max(cw / iw, ch / ih);
+      // 오버드로우가 적용된 "배경 박스 크기"
+      const boxW = cw + over * 2;
+      const boxH = ch + over * 2;
+
+      // cover 스케일(박스 기준)
+      const scale = Math.max(boxW / iw, boxH / ih);
       const dispH = ih * scale;
 
+      // 이미지 내부 기준 refY
       const refY = dispH * DESIGN_REF_Y_RATIO;
-      let shift = targetY - refY;
 
-      const bleed = 28;
-      const minShift = (ch - dispH) - bleed;
-      const maxShift = 0 + bleed;
+      // 위치식: (-over + shift) + refY = targetY  => shift = targetY + over - refY
+      let shift = (targetY + over) - refY;
+
+      // clamp: top<=0 and bottom>=ch 보장
+      // top = -over + shift <= 0  => shift <= over
+      // bottom = -over + shift + dispH >= ch => shift >= ch + over - dispH
+      const minShift = (ch + over) - dispH;
+      const maxShift = over;
 
       if(shift < minShift) shift = minShift;
       if(shift > maxShift) shift = maxShift;
@@ -909,16 +915,24 @@
       applyBgFocusFixed();
     }
 
-    window.addEventListener("resize", () => setTimeout(applyBgFocusAllSlides, 80), {passive:true});
-    window.addEventListener("orientationchange", () => setTimeout(applyBgFocusAllSlides, 150), {passive:true});
-    window.addEventListener("load", () => setTimeout(applyBgFocusAllSlides, 200), {once:true});
+    // ✅ 주소창 변화/dvh 튐 대응: 2프레임 연속 재적용
+    function applyBgFocusStabilized(){
+      applyBgFocusAllSlides();
+      requestAnimationFrame(()=>applyBgFocusAllSlides());
+      requestAnimationFrame(()=>requestAnimationFrame(()=>applyBgFocusAllSlides()));
+    }
+
+    window.addEventListener("resize", () => setTimeout(applyBgFocusStabilized, 60), {passive:true});
+    window.addEventListener("orientationchange", () => setTimeout(applyBgFocusStabilized, 120), {passive:true});
+    window.addEventListener("load", () => setTimeout(applyBgFocusStabilized, 180), {once:true});
 
     /* ✅ 프로모 이미지 존재하면 이미지형으로 전환 (없으면 카드형 유지) */
     (function promoImageToggle(){
       const bg = document.getElementById("promoBg");
-      const img = document.getElementById("promoImg");
+      const fill = document.getElementById("promoFill");
+      const main = document.getElementById("promoMain");
       const content = document.getElementById("promoContent");
-      if(!bg || !img || !content) return;
+      if(!bg || !fill || !main || !content) return;
 
       function enableImageMode(){
         bg.style.opacity = "1";
@@ -929,10 +943,11 @@
         content.style.display = "";
       }
 
-      img.addEventListener("load", enableImageMode, {once:true});
-      img.addEventListener("error", enableCardMode, {once:true});
+      // main 기준으로 로드 체크(둘 다 같은 파일이라)
+      main.addEventListener("load", enableImageMode, {once:true});
+      main.addEventListener("error", enableCardMode, {once:true});
 
-      if(img.complete && img.naturalWidth > 0) enableImageMode();
+      if(main.complete && main.naturalWidth > 0) enableImageMode();
     })();
 
     /* 슬라이드 + 도트 + 스와이프 */
@@ -959,7 +974,7 @@
       idx=(n+slides.length)%slides.length;
       slides[idx].classList.add("active");
       setDots();
-      setTimeout(applyBgFocusAllSlides, 40);
+      setTimeout(applyBgFocusStabilized, 30);
     }
 
     function next(){ showSlide(idx+1); }
@@ -980,9 +995,9 @@
 
     slides.forEach(img=>{
       if(img.complete) return;
-      img.addEventListener("load", ()=> setTimeout(applyBgFocusAllSlides, 60), {once:true});
+      img.addEventListener("load", ()=> setTimeout(applyBgFocusStabilized, 60), {once:true});
     });
-    setTimeout(applyBgFocusAllSlides, 220);
+    setTimeout(applyBgFocusStabilized, 220);
 
     let x0=null,y0=null,moved=false;
     canvas.addEventListener("touchstart",(e)=>{

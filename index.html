@@ -21,6 +21,7 @@
   --promoH: 113px;
 
   --gapDotsToPromo: 3px;
+
   --bgOver: 24px;
 }
 
@@ -30,6 +31,8 @@ body{
   background:#0b0b0b;
   font-family: var(--fontMain);
   overflow:hidden;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
 }
 
 .wrap{
@@ -85,13 +88,15 @@ body{
     rgba(0,0,0,0.62) 100%);
 }
 
-/* ===== glass 완전 제거 ===== */
+/* ===== glass 유지 ===== */
 .glass{
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: none !important;
-  box-shadow: none !important;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow:
+    0 10px 24px rgba(0,0,0,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.35);
 }
 
 /* ===== 하단 스택 ===== */
@@ -104,7 +109,8 @@ body{
   height: var(--infoH);
   bottom: calc(var(--baseBottom) + var(--safeB));
   border-radius: 12px;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.42);
+  border: 1px solid rgba(255,255,255,0.14);
   color: rgba(255,255,255,0.92);
   display:flex;
   align-items:center;
@@ -122,7 +128,6 @@ body{
   bottom: calc(var(--baseBottom) + var(--safeB) + var(--infoH) + var(--gap));
   border-radius: 22px;
   padding: 8px 10px;
-  background: transparent;
 }
 
 .branch{
@@ -140,10 +145,12 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
+  padding: 0 12px;
   color: rgba(255,255,255,0.92);
   text-shadow: 0 1px 8px rgba(0,0,0,0.45);
 }
 
+/* ✅ 프로모는 완전 투명 */
 .promoPanel{
   position:absolute;
   z-index:10;
@@ -156,6 +163,11 @@ body{
     + var(--actionH) + var(--gap)
     + var(--branchH) + var(--gap)
   );
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -177,7 +189,8 @@ body{
   gap:6px;
 }
 .dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
-.dot.on{ background:#fff; }
+.dot.on{ background: rgba(255,255,255,0.95); }
+
 </style>
 </head>
 
@@ -199,8 +212,8 @@ body{
   <img src="assets/promo.webp" style="max-width:100%;max-height:100%;">
 </div>
 
-<div class="branch">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
-<div class="action-panel"></div>
+<div class="branch glass">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
+<div class="action-panel glass"></div>
 <div class="infoBar">광고운영사 정보 보기</div>
 
 </div>

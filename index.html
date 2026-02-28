@@ -8,48 +8,41 @@
   <style>
     :root{
       /* ============================
-         ✅ 디자인 기준(절대 변경 X)
+         ✅ 디자인 기준 좌표계(일러 기준)
          ============================ */
       --designW: 390;
       --designH: 844;
 
-      /* ✅ 캔버스 최대폭 */
       --maxW: 520px;
-
-      /* ✅ 전체 폰트 */
       --fontMain: "Presentation", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
 
-      /* ✅ glass (반투명 패널) */
+      /* glass */
       --glass-bg: rgba(255,255,255,0.15);
       --glass-border: rgba(255,255,255,0.16);
 
-      /* ✅ 배경 오버드로우(검은바 방지) - "실제 캔버스 px" 기준 */
-      --bgOver: 10px;
+      /* ✅ 배경 오버드로우(검은바 방지)
+         - iPhone에서 하단 검은영역 방지하려면 약간 여유를 더 주는게 안전 */
+      --bgOver: 28px;
 
       /* ============================
-         ✅ UI 스케일 (JS에서 자동 세팅)
-         - uiLayer(390x844)에만 적용
+         ✅ UI 스케일/오프셋 (JS에서 자동 세팅)
          ============================ */
       --uiScale: 1;
+      --uiOffX: 0px;
+      --uiOffY: 0px;
 
       /* ============================
-         ✅ 여기만 만지면 되는 "좌표" 영역
-         (모두 390x844 디자인 좌표계 기준 px)
+         ✅ 여기만 만지면 되는 "좌표" (390x844 기준 px)
          ============================ */
-
-      /* 공통 */
       --uiLeft: 16.5px;
       --uiWidth: 357px;
 
-      /* 각 요소 top 좌표 (디자인 기준) */
       --yDots: 549.5px;
       --yPromo: 558.5px;
       --yBranch: 674.5px;
       --yAction: 712px;
       --yInfo: 807px;
 
-      /* 각 요소 높이(디자인 기준) */
-      --hDots: 6px;
       --hPromo: 113px;
       --hBranch: 34.5px;
       --hAction: 92px;
@@ -66,7 +59,6 @@
       text-size-adjust:100%;
     }
 
-    /* (유지) Paperlogy 폰트 파일은 남겨두되, 현재는 사용 안 함 */
     @font-face{
       font-family: "Paperlogy";
       src: url("assets/fonts/Paperlogy-Bold.woff2") format("woff2");
@@ -82,10 +74,11 @@
       font-display: swap;
     }
 
-    /* 화면 가운데에 캔버스(비율 유지)를 배치 */
+    /* iOS 주소창/하단바 변화에 강한 단위 보강 */
     .wrap{
       width:100vw;
       height:100vh;
+      height:100svh;
       height:100dvh;
       display:flex;
       align-items:center;
@@ -94,7 +87,6 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* 캔버스: 실제 화면 크기에 따라 변함 (비율은 390:844 유지) */
     .canvas{
       position:relative;
       width:min(100vw, var(--maxW));
@@ -107,10 +99,7 @@
       touch-action: pan-y;
     }
 
-    /* ============================
-       ✅ 배경 레이어 (캔버스 실제 px 기준)
-       - uiLayer 스케일과 무관
-       ============================ */
+    /* ✅ 배경 */
     .bg{
       position:absolute;
       inset:0;
@@ -131,7 +120,6 @@
       transition: opacity .6s ease;
       filter: contrast(1.08) saturate(1.05);
 
-      /* JS에서 --bgShift(px)를 계산해 Y만 이동 */
       transform: translate3d(0, var(--bgShift, 0px), 0);
       will-change: opacity, transform;
     }
@@ -145,19 +133,16 @@
         rgba(0,0,0,0.62) 100%);
     }
 
-    /* ============================
-       ✅ UI 레이어 (390x844 고정 + scale로 맞춤)
-       - 여기 안에서는 "일러 좌표" 그대로 쓰면 됨
-       ============================ */
+    /* ✅ UI 레이어: 390x844 고정 + (translate로 중앙정렬) + scale */
     .uiLayer{
       position:absolute;
       left:0; top:0;
       width: calc(var(--designW) * 1px);
       height: calc(var(--designH) * 1px);
       transform-origin: top left;
-      transform: scale(var(--uiScale));
-      z-index: 10; /* 배경/오버레이 위 */
-      pointer-events: none; /* 기본은 통과, 각 UI에서 다시 켬 */
+      transform: translate3d(var(--uiOffX), var(--uiOffY), 0) scale(var(--uiScale));
+      z-index: 10;
+      pointer-events: none; /* 기본은 통과, 클릭 요소는 개별로 auto */
     }
 
     .glass{
@@ -170,15 +155,12 @@
         inset 0 1px 0 rgba(255,255,255,0.35);
     }
 
-    /* ============================
-       ✅ 도트(슬라이드 인디케이터) - 좌표 기반
-       ============================ */
+    /* ✅ 도트 */
     .dots{
       position:absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      left:50%;
+      transform:translateX(-50%);
       top: var(--yDots);
-      height: var(--hDots);
       display:flex;
       gap:6px;
       pointer-events:none;
@@ -186,10 +168,7 @@
     .dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
     .dot.on{ background: rgba(255,255,255,0.95); }
 
-    /* ============================
-       ✅ 프로모 패널 - 좌표 기반
-       - 요청사항: "프로모만 배경 없애기" 유지
-       ============================ */
+    /* ✅ 프로모(배경 제거 유지) */
     .promoPanel{
       position:absolute;
       left: var(--uiLeft);
@@ -226,9 +205,7 @@
       display:block;
     }
 
-    /* ============================
-       ✅ 지점 선택(반투명 유지) - 좌표 기반
-       ============================ */
+    /* ✅ 지점 선택 */
     .branch{
       position:absolute;
       left: var(--uiLeft);
@@ -248,7 +225,7 @@
       gap: 8px;
       font-family: var(--fontMain);
 
-      pointer-events:auto; /* 클릭 가능 */
+      pointer-events:auto;
     }
     .branch .txt{
       font-weight:900;
@@ -266,9 +243,7 @@
     }
     .branch svg path{ stroke: rgba(255,255,255,0.92); }
 
-    /* ============================
-       ✅ 액션 패널(반투명 유지) - 좌표 기반
-       ============================ */
+    /* ✅ 액션 */
     .action-panel{
       position:absolute;
       left: var(--uiLeft);
@@ -282,7 +257,7 @@
       align-items:flex-start;
       justify-content:center;
 
-      pointer-events:auto; /* 클릭 가능 */
+      pointer-events:auto;
     }
 
     .btnRow{
@@ -300,7 +275,6 @@
       gap:5px;
       flex: 0 0 auto;
     }
-
     .actionPng{
       width:56px; height:56px;
       border-radius:16px;
@@ -313,7 +287,6 @@
       text-decoration:none;
     }
     .actionPng:active{ transform: translateY(1px); }
-
     .btnLabel{
       font-size:10px;
       font-weight:900;
@@ -326,9 +299,7 @@
       font-family: var(--fontMain);
     }
 
-    /* ============================
-       ✅ 하단 정보 바(반투명 유지) - 좌표 기반
-       ============================ */
+    /* ✅ 하단 정보 */
     .infoBar{
       position:absolute;
       left: var(--uiLeft);
@@ -349,18 +320,16 @@
       user-select:none;
       font-family: var(--fontMain);
 
-      pointer-events:auto; /* 클릭 가능 */
+      pointer-events:auto;
     }
 
-    /* ============================
-       ✅ 토스트 (기능 동일)
-       ============================ */
+    /* 토스트 (기능 동일) */
     .toast{
       position:absolute;
       left:50%;
       transform:translateX(-50%);
       z-index: 30;
-      bottom: 140px; /* 토스트는 기존처럼 대략 위치면 충분 -> 필요하면 좌표화 가능 */
+      bottom: 140px;
       padding: 10px 14px;
       border-radius: 999px;
       background: rgba(0,0,0,0.75);
@@ -378,11 +347,7 @@
       transform: translateX(-50%) translateY(-2px);
     }
 
-    /* ============================
-       ✅ 모달 (기능 동일)
-       - uiLayer 안에서 390x844 기준으로 커버되고
-       - scale로 실제 캔버스를 정확히 덮음
-       ============================ */
+    /* 모달 */
     .modal-backdrop{
       position:absolute; inset:0; z-index:50;
       display:none; align-items:flex-end; justify-content:center;
@@ -391,7 +356,6 @@
       pointer-events:auto;
     }
     .modal-backdrop.open{ display:flex; }
-
     .modal{
       width:100%;
       max-width:520px;
@@ -444,7 +408,6 @@
       color: rgba(15,23,42,0.70);
       line-height: 1;
     }
-
     .bizText{
       padding: 14px 16px;
       font-size: 12px;
@@ -460,7 +423,6 @@
   <div class="wrap">
     <div class="canvas" id="canvas">
 
-      <!-- ✅ 배경 슬라이드 -->
       <div class="bg" aria-hidden="true">
         <img class="active" src="assets/bg1.webp" alt="">
         <img src="assets/bg2.webp" alt="">
@@ -469,10 +431,7 @@
       </div>
       <div class="overlay" aria-hidden="true"></div>
 
-      <!-- ==================================================
-           ✅ UI 레이어 (390x844 좌표계)
-           - 여기 안의 top/left는 일러 좌표 그대로
-           ================================================== -->
+      <!-- ✅ UI 레이어 -->
       <div class="uiLayer" id="uiLayer">
 
         <div class="dots" id="dots" aria-hidden="true"></div>
@@ -562,35 +521,6 @@
   </div>
 
   <script>
-    /* =========================================================
-       ✅ (추가) UI 스케일 세팅
-       - uiLayer(390x844)를 실제 canvas에 딱 맞게 scale
-       - 기능 영향 X / 배치만 정밀화
-       ========================================================= */
-    function updateUiScale(){
-      const canvas = document.getElementById("canvas");
-      if(!canvas) return;
-
-      const cw = canvas.clientWidth;
-      const ch = canvas.clientHeight;
-
-      const designW = 390;
-      const designH = 844;
-
-      // 캔버스는 이미 390:844 비율이지만, 안전하게 min 사용
-      const s = Math.min(cw / designW, ch / designH);
-
-      document.documentElement.style.setProperty("--uiScale", String(s));
-      // 배경 포커스도 스케일 변화 후 다시 맞추기
-      setTimeout(applyBgFocusStabilized, 0);
-    }
-
-    window.addEventListener("resize", ()=>updateUiScale(), {passive:true});
-    window.addEventListener("orientationchange", ()=>setTimeout(updateUiScale, 80), {passive:true});
-
-    /* =========================================================
-       ✅ 기존 기능 (그대로 유지)
-       ========================================================= */
     const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
     const SLIDE_INTERVAL_MS = 5500;
 
@@ -663,6 +593,35 @@
         });
       }catch(e){}
     }
+
+    /* =========================================================
+       ✅ UI 스케일 + 중앙정렬(왼쪽 붙는 문제 해결)
+       ========================================================= */
+    function updateUiTransform(){
+      const canvas = document.getElementById("canvas");
+      const ui = document.getElementById("uiLayer");
+      if(!canvas || !ui) return;
+
+      const cw = canvas.clientWidth;
+      const ch = canvas.clientHeight;
+
+      const designW = 390;
+      const designH = 844;
+
+      // 캔버스 비율이 고정이지만, 안전하게 min
+      const s = Math.min(cw / designW, ch / designH);
+
+      // 스케일된 UI가 캔버스 중앙에 오도록 오프셋 계산
+      const offX = (cw - designW * s) / 2;
+      const offY = (ch - designH * s) / 2;
+
+      document.documentElement.style.setProperty("--uiScale", String(s));
+      document.documentElement.style.setProperty("--uiOffX", offX.toFixed(2) + "px");
+      document.documentElement.style.setProperty("--uiOffY", offY.toFixed(2) + "px");
+    }
+
+    window.addEventListener("resize", ()=>{ updateUiTransform(); setTimeout(applyBgFocusStabilized, 30); }, {passive:true});
+    window.addEventListener("orientationchange", ()=>{ setTimeout(()=>{ updateUiTransform(); applyBgFocusStabilized(); }, 120); }, {passive:true});
 
     /* Toast */
     const toastEl = document.getElementById("toast");
@@ -793,21 +752,16 @@
     })();
 
     /* =========================
-       ✅ 배경 포커스: "프로모의 바로 위 라인"에 refY 정렬
-       - 변경점: promo.offsetTop이 "스케일 전 좌표"라서 scale 곱해줌
+       ✅ 배경 포커스 (정밀 버전)
+       - promoPanel의 "실제 화면 좌표"를 canvas 기준으로 잡음
+       - iPhone 잘림/검은 여백 문제 해결 핵심
        ========================= */
     const DESIGN_REF_Y_RATIO = 1168 / 1688;
 
     function getBgOver(){
       const v = getComputedStyle(document.documentElement).getPropertyValue("--bgOver").trim();
       const n = parseFloat(v);
-      return Number.isFinite(n) ? n : 10;
-    }
-
-    function getUiScale(){
-      const v = getComputedStyle(document.documentElement).getPropertyValue("--uiScale").trim();
-      const n = parseFloat(v);
-      return Number.isFinite(n) ? n : 1;
+      return Number.isFinite(n) ? n : 28;
     }
 
     function applyBgFocusFixed(){
@@ -820,11 +774,11 @@
       if(!ch || !cw) return;
 
       const over = getBgOver();
-      const uiScale = getUiScale();
 
-      /* ✅ 목표 라인: promoPanel의 top(=프로모 바로 위 라인)
-         - uiLayer 내부 좌표 -> 실제 캔버스 좌표로 변환 */
-      const targetY = promo.offsetTop * uiScale;
+      // ✅ "프로모 top"을 실제 픽셀로 얻어서 canvas 기준으로 변환
+      const canvasRect = canvas.getBoundingClientRect();
+      const promoRect  = promo.getBoundingClientRect();
+      const targetY = (promoRect.top - canvasRect.top);
 
       const active = document.querySelector(".bg img.active");
       if(!active) return;
@@ -841,7 +795,6 @@
 
       const refY = dispH * DESIGN_REF_Y_RATIO;
 
-      /* shift + refY = targetY + over  */
       let shift = (targetY + over) - refY;
 
       const minShift = (ch + over) - dispH;
@@ -859,11 +812,8 @@
       requestAnimationFrame(()=>requestAnimationFrame(()=>applyBgFocusFixed()));
     }
 
-    window.addEventListener("resize", () => setTimeout(applyBgFocusStabilized, 60), {passive:true});
-    window.addEventListener("orientationchange", () => setTimeout(applyBgFocusStabilized, 120), {passive:true});
     window.addEventListener("load", () => setTimeout(applyBgFocusStabilized, 180), {once:true});
 
-    /* 프로모 이미지 로드되면 포커싱 재계산(레이아웃 안정화) */
     (function(){
       const p = document.getElementById("promoImg");
       if(!p) return;
@@ -943,11 +893,9 @@
       x0=null;y0=null;moved=false;
     },{passive:true});
 
-    /* =========================
-       ✅ 최초 1회 초기화
-       ========================= */
+    /* ✅ 초기화 */
     (function init(){
-      updateUiScale();
+      updateUiTransform();
       setTimeout(applyBgFocusStabilized, 220);
     })();
   </script>

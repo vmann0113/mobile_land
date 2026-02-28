@@ -1,263 +1,858 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
-<title>hanbeam.kr</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1" />
+  <title>hanbeam.kr</title>
 
-<style>
-:root{
-  --maxW: 520px;
-  --fontMain: "Presentation", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
+  <style>
+    :root{
+      --maxW: 520px;
 
-  /* ✅ 3px 통일 */
-  --gap: 3px;
-  --safeB: env(safe-area-inset-bottom);
-  --baseBottom: 3px;
+      /* ✅ 전체 폰트(프레젠테이션) */
+      --fontMain: "Presentation", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
 
-  --infoH: 30px;
-  --actionH: 92px;
-  --branchH: 34.5px;
-  --promoH: 113px;
+      /* glass */
+      --glass-bg: rgba(255,255,255,0.15);
+      --glass-border: rgba(255,255,255,0.16);
 
-  --gapDotsToPromo: 3px;
+      /* stack */
+      --gap: 5px;
+      --safeB: env(safe-area-inset-bottom);
 
-  --bgOver: 24px;
-}
+      /* ✅ 전체를 5px 아래로 */
+      --baseBottom: 7px;
 
-*{ box-sizing:border-box; }
-html,body{ height:100%; margin:0; }
-body{
-  background:#0b0b0b;
-  font-family: var(--fontMain);
-  overflow:hidden;
-  -webkit-text-size-adjust:100%;
-  text-size-adjust:100%;
-}
+      /* heights */
+      --infoH: 30px;
+      --actionH: 92px;
+      --branchH: 34.5px;
+      --promoH: 113px;
 
-.wrap{
-  width:100vw;
-  height:100vh;
-  height:100dvh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-}
+      /* gap dots */
+      --gapDotsToPromo: 6px;
 
-.canvas{
-  position:relative;
-  width:min(100vw, var(--maxW));
-  aspect-ratio:390/844;
-  max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  border-radius:22px;
-  overflow:hidden;
-  background:#000;
-  box-shadow: 0 20px 80px rgba(0,0,0,0.45);
-  touch-action: pan-y;
-}
+      /* ✅ 배경 오버드로우(검은바 방지 핵심) */
+      --bgOver: 24px;
+    }
 
-/* ===== 배경 ===== */
-.bg{
-  position:absolute;
-  inset:0;
-  z-index:0;
-  overflow:hidden;
-  background:#000;
-}
-.bg img{
-  position:absolute;
-  top: calc(var(--bgOver) * -1);
-  left: calc(var(--bgOver) * -1);
-  width: calc(100% + (var(--bgOver) * 2));
-  height: calc(100% + (var(--bgOver) * 2));
-  object-fit: cover;
-  object-position: top center;
-  opacity:0;
-  transition: opacity .6s ease;
-  transform: translate3d(0, var(--bgShift, 0px), 0);
-}
-.bg img.active{ opacity:1; }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; margin:0; }
+    body{
+      background:#0b0b0b;
+      font-family: var(--fontMain);
+      overflow:hidden;
+      -webkit-text-size-adjust:100%;
+      text-size-adjust:100%;
+    }
 
-.overlay{
-  position:absolute; inset:0; z-index:1;
-  pointer-events:none;
-  background: linear-gradient(to bottom,
-    rgba(0,0,0,0.00) 38%,
-    rgba(0,0,0,0.62) 100%);
-}
+    /* (유지) Paperlogy 폰트 파일은 남겨두되, 현재는 사용 안 함 */
+    @font-face{
+      font-family: "Paperlogy";
+      src: url("assets/fonts/Paperlogy-Bold.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face{
+      font-family: "Paperlogy";
+      src: url("assets/fonts/Paperlogy-ExtraBold.woff2") format("woff2");
+      font-weight: 800;
+      font-style: normal;
+      font-display: swap;
+    }
 
-/* ===== glass 유지 ===== */
-.glass{
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.16);
-  box-shadow:
-    0 10px 24px rgba(0,0,0,0.10),
-    inset 0 1px 0 rgba(255,255,255,0.35);
-}
+    .wrap{
+      width:100vw;
+      height:100vh;
+      height:100dvh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
 
-/* ===== 하단 스택 ===== */
+    .canvas{
+      position:relative;
+      width:min(100vw, var(--maxW));
+      aspect-ratio:390/844;
+      max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      border-radius:22px;
+      overflow:hidden;
+      background:#000;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.45);
+      touch-action: pan-y;
+    }
 
-.infoBar{
-  position:absolute;
-  z-index:10;
-  left: calc(16.5 / 390 * 100%);
-  width: calc(357 / 390 * 100%);
-  height: var(--infoH);
-  bottom: calc(var(--baseBottom) + var(--safeB));
-  border-radius: 12px;
-  background: rgba(0,0,0,0.42);
-  border: 1px solid rgba(255,255,255,0.14);
-  color: rgba(255,255,255,0.92);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size: 11px;
-  font-weight: 900;
-}
+    /* ✅ 배경: cover + JS translateY로 포커스 고정 */
+    .bg{
+      position:absolute;
+      inset:0;
+      z-index:0;
+      overflow:hidden;
+      background:#000;
+    }
+    .bg img{
+      position:absolute;
+      top: calc(var(--bgOver) * -1);
+      left: calc(var(--bgOver) * -1);
+      width: calc(100% + (var(--bgOver) * 2));
+      height: calc(100% + (var(--bgOver) * 2));
+      object-fit: cover;
+      object-position: top center;
 
-.action-panel{
-  position:absolute;
-  z-index:10;
-  left: calc(16.5 / 390 * 100%);
-  width: calc(357 / 390 * 100%);
-  height: var(--actionH);
-  bottom: calc(var(--baseBottom) + var(--safeB) + var(--infoH) + var(--gap));
-  border-radius: 22px;
-  padding: 8px 10px;
-}
+      opacity:0;
+      transition: opacity .6s ease;
+      filter: contrast(1.08) saturate(1.05);
 
-.branch{
-  position:absolute;
-  z-index:10;
-  left: calc(16.5 / 390 * 100%);
-  width: calc(357 / 390 * 100%);
-  height: var(--branchH);
-  bottom: calc(
-    var(--baseBottom) + var(--safeB)
-    + var(--infoH) + var(--gap)
-    + var(--actionH) + var(--gap)
-  );
-  border-radius: 999px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding: 0 12px;
-  color: rgba(255,255,255,0.92);
-  text-shadow: 0 1px 8px rgba(0,0,0,0.45);
-}
+      transform: translate3d(0, var(--bgShift, 0px), 0);
+      will-change: opacity, transform;
+    }
+    .bg img.active{ opacity:1; }
 
-/* ✅ 프로모는 완전 투명 */
-.promoPanel{
-  position:absolute;
-  z-index:10;
-  left: calc(16.5 / 390 * 100%);
-  width: calc(357 / 390 * 100%);
-  height: var(--promoH);
-  bottom: calc(
-    var(--baseBottom) + var(--safeB)
-    + var(--infoH) + var(--gap)
-    + var(--actionH) + var(--gap)
-    + var(--branchH) + var(--gap)
-  );
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+    .overlay{
+      position:absolute; inset:0; z-index:1;
+      pointer-events:none;
+      background: linear-gradient(to bottom,
+        rgba(0,0,0,0.00) 38%,
+        rgba(0,0,0,0.62) 100%);
+    }
 
-.dots{
-  position:absolute;
-  z-index:10;
-  left:50%;
-  transform:translateX(-50%);
-  bottom: calc(
-    var(--baseBottom) + var(--safeB)
-    + var(--infoH) + var(--gap)
-    + var(--actionH) + var(--gap)
-    + var(--branchH) + var(--gap)
-    + var(--promoH) + var(--gapDotsToPromo)
-  );
-  display:flex;
-  gap:6px;
-}
-.dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
-.dot.on{ background: rgba(255,255,255,0.95); }
+    .glass{
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      box-shadow:
+        0 10px 24px rgba(0,0,0,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+    }
 
-</style>
+    /* ===== 하단 스택 ===== */
+
+    .infoBar{
+      position:absolute;
+      z-index:10;
+      left: calc(16.5 / 390 * 100%);
+      width: calc(357 / 390 * 100%);
+      height: var(--infoH);
+      bottom: calc(var(--baseBottom) + var(--safeB));
+      border-radius: 12px;
+      background: rgba(0,0,0,0.42);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.92);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 11px;
+      font-weight: 900;
+      cursor:pointer;
+      user-select:none;
+      font-family: var(--fontMain);
+    }
+
+    .action-panel{
+      position:absolute;
+      z-index:10;
+      left: calc(16.5 / 390 * 100%);
+      width: calc(357 / 390 * 100%);
+      height: var(--actionH);
+      bottom: calc(var(--baseBottom) + var(--safeB) + var(--infoH) + var(--gap));
+      border-radius: 22px;
+      padding: 8px 10px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+    }
+
+    .btnRow{
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      padding: 0 12px;
+      gap: 12px;
+    }
+    .btnCol{
+      width:56px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:5px;
+      flex: 0 0 auto;
+    }
+
+    .actionPng{
+      width:56px; height:56px;
+      border-radius:16px;
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      display:block;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+      text-decoration:none;
+    }
+    .actionPng:active{ transform: translateY(1px); }
+
+    .btnLabel{
+      font-size:10px;
+      font-weight:900;
+      color: rgba(255,255,255,0.88);
+      text-shadow: 0 1px 8px rgba(0,0,0,0.45);
+      letter-spacing:-0.02em;
+      line-height:1;
+      user-select:none;
+      white-space:nowrap;
+      font-family: var(--fontMain);
+    }
+
+    .branch{
+      position:absolute;
+      z-index:10;
+      left: calc(16.5 / 390 * 100%);
+      width: calc(357 / 390 * 100%);
+      height: var(--branchH);
+      bottom: calc(
+        var(--baseBottom) + var(--safeB)
+        + var(--infoH) + var(--gap)
+        + var(--actionH) + var(--gap)
+      );
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 0 12px;
+      cursor:pointer;
+      user-select:none;
+      color: rgba(255,255,255,0.92);
+      text-shadow: 0 1px 8px rgba(0,0,0,0.45);
+      gap: 8px;
+      font-family: var(--fontMain);
+    }
+    .branch .txt{
+      font-weight:900;
+      font-size:13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      text-align:center;
+      line-height:1;
+    }
+    .branch svg{
+      width:14px; height:14px;
+      opacity:0.95;
+      flex: 0 0 auto;
+    }
+    .branch svg path{ stroke: rgba(255,255,255,0.92); }
+
+    /* ✅ 프로모: "지점선택 바로 위" + 다른 요소와 동일 간격(--gap) */
+    .promoPanel{
+      position:absolute;
+      z-index:10;
+      left: calc(16.5 / 390 * 100%);
+      width: calc(357 / 390 * 100%);
+      height: var(--promoH);
+      bottom: calc(
+        var(--baseBottom) + var(--safeB)
+        + var(--infoH) + var(--gap)
+        + var(--actionH) + var(--gap)
+        + var(--branchH) + var(--gap)   /* ✅ 여기: branch 위 간격을 --gap으로 통일 */
+      );
+
+      /* ✅ 패널 흔적 완전 제거 */
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+
+      padding: 0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+    }
+
+    .promoOnly{
+      width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+    }
+    .promoOnly img{
+      max-width:100%;
+      max-height:100%;
+      width:auto;
+      height:auto;
+      object-fit: contain;
+      object-position:center;
+      display:block;
+    }
+
+    /* ✅ 도트: 프로모 위 */
+    .dots{
+      position:absolute;
+      z-index:10;
+      left:50%;
+      transform:translateX(-50%);
+      bottom: calc(
+        var(--baseBottom) + var(--safeB)
+        + var(--infoH) + var(--gap)
+        + var(--actionH) + var(--gap)
+        + var(--branchH) + var(--gap)
+        + var(--promoH) + var(--gapDotsToPromo)
+      );
+      display:flex;
+      gap:6px;
+      pointer-events:none;
+    }
+    .dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
+    .dot.on{ background: rgba(255,255,255,0.95); }
+
+    .toast{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      z-index: 30;
+      bottom: calc(
+        var(--baseBottom) + var(--safeB)
+        + var(--infoH) + var(--gap)
+        + var(--actionH) + 14px
+      );
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.75);
+      color: rgba(255,255,255,0.95);
+      font-weight: 900;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events:none;
+      transition: opacity .18s ease, transform .18s ease;
+      white-space:nowrap;
+      font-family: var(--fontMain);
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    /* 모달 */
+    .modal-backdrop{
+      position:absolute; inset:0; z-index:50;
+      display:none; align-items:flex-end; justify-content:center;
+      padding: 16px;
+      background: rgba(0,0,0,0.52);
+    }
+    .modal-backdrop.open{ display:flex; }
+
+    .modal{
+      width:100%;
+      max-width:520px;
+      border-radius: 22px;
+      overflow:hidden;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.22);
+      font-family: var(--fontMain);
+    }
+    .modalHead{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 12px 14px;
+      color: rgba(15,23,42,0.92);
+      font-weight:900;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      font-size: 14px;
+      line-height:1;
+    }
+    .modalHead button{
+      border:none; background:transparent; cursor:pointer;
+      font-weight:900; font-size: 13px;
+      color: rgba(15,23,42,0.65);
+      font-family: var(--fontMain);
+    }
+    .modalBody{
+      padding: 10px 0;
+      max-height: 62vh;
+      overflow:auto;
+    }
+    .item{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      cursor:pointer;
+      color: rgba(15,23,42,0.92);
+      font-weight:900;
+      font-size: 14px;
+      background: rgba(255,255,255,0.25);
+    }
+    .item:last-child{ border-bottom:none; }
+    .item:active{ background: rgba(56,163,255,0.10); }
+    .badge{
+      font-size: 11px;
+      font-weight:900;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(56,163,255,0.14);
+      border: 1px solid rgba(56,163,255,0.25);
+      white-space:nowrap;
+      color: rgba(15,23,42,0.70);
+      line-height: 1;
+    }
+
+    .bizText{
+      padding: 14px 16px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(15,23,42,0.82);
+      white-space: pre-line;
+      font-family: var(--fontMain);
+    }
+  </style>
 </head>
 
 <body>
-<div class="wrap">
-<div class="canvas" id="canvas">
+  <div class="wrap">
+    <div class="canvas" id="canvas">
 
-<div class="bg">
-  <img class="active" src="assets/bg1.webp">
-  <img src="assets/bg2.webp">
-  <img src="assets/bg3.webp">
-  <img src="assets/bg4.webp">
-</div>
-<div class="overlay"></div>
+      <div class="bg" aria-hidden="true">
+        <img class="active" src="assets/bg1.webp" alt="">
+        <img src="assets/bg2.webp" alt="">
+        <img src="assets/bg3.webp" alt="">
+        <img src="assets/bg4.webp" alt="">
+      </div>
+      <div class="overlay" aria-hidden="true"></div>
 
-<div class="dots" id="dots"></div>
+      <div class="dots" id="dots" aria-hidden="true"></div>
 
-<div class="promoPanel" id="promoPanel">
-  <img src="assets/promo.webp" style="max-width:100%;max-height:100%;">
-</div>
+      <!-- ✅ 프로모: 패널 흔적 0, 이미지 1장 -->
+      <div class="promoPanel" id="promoPanel" aria-label="이벤트 가격">
+        <div class="promoOnly" aria-hidden="true">
+          <img id="promoImg" src="assets/promo.webp" alt="">
+        </div>
+      </div>
 
-<div class="branch glass">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
-<div class="action-panel glass"></div>
-<div class="infoBar">광고운영사 정보 보기</div>
+      <div class="branch glass" id="openBranch" role="button" tabindex="0">
+        <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
 
-</div>
-</div>
+      <div class="action-panel glass">
+        <div class="btnRow">
+          <div class="btnCol">
+            <a class="actionPng" id="btnCall" href="#"
+               style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
+            <div class="btnLabel">전화문의</div>
+          </div>
 
-<script>
-const DESIGN_REF_Y_RATIO = 1168 / 1688;
+          <div class="btnCol">
+            <a class="actionPng" id="btnKakao" href="#"
+               style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
+            <div class="btnLabel">카톡문의</div>
+          </div>
 
-function applyBgFocus(){
-  const canvas = document.getElementById("canvas");
-  const promo  = document.getElementById("promoPanel");
-  const active = document.querySelector(".bg img.active");
-  if(!canvas || !promo || !active) return;
+          <div class="btnCol">
+            <a class="actionPng" id="btnReserve" href="#"
+               style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
+            <div class="btnLabel">네이버예약</div>
+          </div>
 
-  const ch = canvas.clientHeight;
-  const cw = canvas.clientWidth;
-  const over = parseFloat(getComputedStyle(document.documentElement)
-                .getPropertyValue("--bgOver")) || 24;
+          <div class="btnCol">
+            <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr/9"
+               style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
+            <div class="btnLabel">더 알아보기</div>
+          </div>
+        </div>
+      </div>
 
-  const iw = active.naturalWidth;
-  const ih = active.naturalHeight;
-  if(!iw || !ih) return;
+      <div class="infoBar" id="openBiz" role="button" tabindex="0">
+        광고운영사 정보 보기
+      </div>
 
-  const boxW = cw + over*2;
-  const boxH = ch + over*2;
-  const scale = Math.max(boxW/iw, boxH/ih);
-  const dispH = ih * scale;
+      <div class="toast" id="toast">준비중입니다.</div>
 
-  const refY = dispH * DESIGN_REF_Y_RATIO;
-  const targetY = promo.offsetTop;
+      <!-- 지점 선택 모달 -->
+      <div class="modal-backdrop" id="branchBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
+          <div class="modalHead">
+            <div>지점 선택</div>
+            <button id="closeBranch" type="button">닫기</button>
+          </div>
+          <div class="modalBody" id="branchList"></div>
+        </div>
+      </div>
 
-  let shift = (targetY + over) - refY;
-  const minShift = (ch + over) - dispH;
-  const maxShift = over;
+      <!-- 사업자정보 모달 -->
+      <div class="modal-backdrop" id="bizBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-label="광고운영사 정보">
+          <div class="modalHead">
+            <div>광고운영사 정보</div>
+            <button id="closeBiz" type="button">닫기</button>
+          </div>
+          <div class="modalBody">
+            <div class="bizText">
+|  광고운영사 정보  |
+운영사 : ㈜브이커뮤니케이션    |    대표자 : 김정태    |    사업자등록번호 : 744-87-02865
+주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)
+고객센터 : 051-711-3722    |    이메일 : contact@v-comm.co.kr    |    제휴사 : 한빔한복 전지점
 
-  if(shift < minShift) shift = minShift;
-  if(shift > maxShift) shift = maxShift;
+본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.
+한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
+            </div>
+          </div>
+        </div>
+      </div>
 
-  active.style.setProperty("--bgShift", shift.toFixed(2)+"px");
-}
+    </div>
+  </div>
 
-window.addEventListener("load",()=>setTimeout(applyBgFocus,120));
-window.addEventListener("resize",()=>setTimeout(applyBgFocus,60));
-</script>
+  <script>
+    const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
+    const SLIDE_INTERVAL_MS = 5500;
 
+    const BRANCHES = [
+      { name:"부산점",     phone:"051.634.2325", reserve:"https://m.booking.naver.com/booking/6/bizes/661812",  kakao:"https://open.kakao.com/o/soq7Ns4d" },
+      { name:"부산센텀점", phone:"010-3052-2325", reserve:"https://booking.naver.com/booking/13/bizes/868629", kakao:null },
+      { name:"김해점",     phone:"010.8065.2325", reserve:"https://booking.naver.com/booking/6/bizes/1402679", kakao:"https://open.kakao.com/o/sHM2wwsh" },
+      { name:"창원점",     phone:"055.263.2325", reserve:"https://booking.naver.com/booking/6/bizes/843111",  kakao:"https://open.kakao.com/o/sdcvbh5e" },
+      { name:"양산점",     phone:"055.912.0425", reserve:"https://booking.naver.com/booking/13/bizes/868629", kakao:"https://open.kakao.com/o/sp44Hxaf" },
+      { name:"진주점",     phone:"010.5654.2407", reserve:"https://m.booking.naver.com/booking/6/bizes/1485854", kakao:"https://open.kakao.com/o/sbxBToNh" },
+      { name:"인천점",     phone:"032.283.2325", reserve:"https://m.booking.naver.com/booking/13/bizes/1039475", kakao:"https://open.kakao.com/o/sIrXajUf" },
+      { name:"안산점",     phone:"010.6591.2322", reserve:"https://m.booking.naver.com/booking/6/bizes/1500008", kakao:"https://open.kakao.com/o/sqRSjaRh" },
+      { name:"마산점",     phone:"010.8832.2325", reserve:"https://booking.naver.com/booking/6/bizes/1526541", kakao:"https://open.kakao.com/o/ssWvuvYh" },
+      { name:"울산점",     phone:"010.9807.2325", reserve:"https://booking.naver.com/booking/6/bizes/1534767", kakao:"https://open.kakao.com/o/sKjCbA0h" },
+      { name:"대구점",     phone:"010-8492-2328", reserve:"https://m.place.naver.com/place/2043617700/ticket?entry=pll&bk_query=%ED%95%9C%EB%B9%94%ED%95%9C%EB%B3%B5", kakao:null }
+    ];
+
+    function getDeviceType(){
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ? "mobile" : "pc";
+    }
+
+    function getSessionId(){
+      const k="HB_LANDING_SID";
+      let v=localStorage.getItem(k);
+      if(!v){
+        const c = (typeof window !== "undefined") ? window.crypto : null;
+        v = (c && typeof c.randomUUID === "function")
+          ? c.randomUUID()
+          : (Date.now()+"_"+Math.random().toString(16).slice(2));
+        localStorage.setItem(k,v);
+      }
+      return v;
+    }
+
+    function toTelHref(phone){
+      const digits = String(phone || "").replace(/[^\d]/g,"");
+      return digits ? ("tel:" + digits) : "";
+    }
+
+    function logEventNoWait(type, data = {}){
+      const payload = {
+        type,
+        sessionId: getSessionId(),
+        device: getDeviceType(),
+        branch: state.branch?.name || "",
+        action: data.action || "",
+        href: data.href || "",
+        page: location.pathname || "/",
+        referrer: document.referrer || "",
+        ua: navigator.userAgent || "",
+        ts: Date.now()
+      };
+
+      try{
+        const blob = new Blob([JSON.stringify(payload)], {type:"text/plain;charset=utf-8"});
+        if(navigator.sendBeacon){
+          navigator.sendBeacon(LOG_ENDPOINT, blob);
+          return;
+        }
+      }catch(e){}
+
+      try{
+        fetch(LOG_ENDPOINT, {
+          method:"POST",
+          headers:{ "Content-Type":"text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+          keepalive:true
+        });
+      }catch(e){}
+    }
+
+    /* Toast */
+    const toastEl = document.getElementById("toast");
+    let toastTimer=null;
+    function showToast(msg){
+      toastEl.textContent = msg || "준비중입니다.";
+      toastEl.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer=setTimeout(()=>toastEl.classList.remove("show"), 1400);
+    }
+
+    /* 상태/모달 */
+    const state = { branch:null };
+
+    const branchBackdrop = document.getElementById("branchBackdrop");
+    const openBranch = document.getElementById("openBranch");
+    const closeBranch = document.getElementById("closeBranch");
+    const branchList = document.getElementById("branchList");
+    const branchText = document.getElementById("branchText");
+
+    function openBranchModal(){
+      branchBackdrop.classList.add("open");
+      branchBackdrop.setAttribute("aria-hidden","false");
+    }
+    function closeBranchModal(){
+      branchBackdrop.classList.remove("open");
+      branchBackdrop.setAttribute("aria-hidden","true");
+    }
+
+    function renderBranchList(){
+      branchList.innerHTML = "";
+      BRANCHES.forEach(b=>{
+        const el=document.createElement("div");
+        el.className="item";
+        el.innerHTML = `<div>${b.name}</div><div class="badge">선택</div>`;
+        el.addEventListener("click", ()=>selectBranch(b));
+        branchList.appendChild(el);
+      });
+    }
+
+    function selectBranch(b){
+      state.branch=b;
+      branchText.textContent = `${b.name} 선택됨 | 다시 선택하려면 눌러주세요`;
+      logEventNoWait("branch_select", { action:"branch_select", href:"" });
+      closeBranchModal();
+    }
+
+    renderBranchList();
+    openBranch.addEventListener("click", openBranchModal);
+    openBranch.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" ") openBranchModal(); });
+    closeBranch.addEventListener("click", closeBranchModal);
+    branchBackdrop.addEventListener("click", (e)=>{ if(e.target===branchBackdrop) closeBranchModal(); });
+
+    /* 사업자정보 모달 */
+    const bizBackdrop = document.getElementById("bizBackdrop");
+    const openBiz = document.getElementById("openBiz");
+    const closeBiz = document.getElementById("closeBiz");
+
+    function openBizModal(){
+      bizBackdrop.classList.add("open");
+      bizBackdrop.setAttribute("aria-hidden","false");
+      logEventNoWait("click", { action:"biz_open", href:"" });
+    }
+    function closeBizModal(){
+      bizBackdrop.classList.remove("open");
+      bizBackdrop.setAttribute("aria-hidden","true");
+    }
+    openBiz.addEventListener("click", openBizModal);
+    openBiz.addEventListener("keydown", (e)=>{ if(e.key==="Enter"||e.key===" ") openBizModal(); });
+    closeBiz.addEventListener("click", closeBizModal);
+    bizBackdrop.addEventListener("click", (e)=>{ if(e.target===bizBackdrop) closeBizModal(); });
+
+    /* 버튼 */
+    const btnCall=document.getElementById("btnCall");
+    const btnKakao=document.getElementById("btnKakao");
+    const btnReserve=document.getElementById("btnReserve");
+    const btnMore=document.getElementById("btnMore");
+
+    function requireBranchOrOpenModal(e){
+      if(!state.branch){
+        e.preventDefault();
+        openBranchModal();
+        return true;
+      }
+      return false;
+    }
+
+    btnCall.addEventListener("click",(e)=>{
+      e.preventDefault();
+      if(requireBranchOrOpenModal(e)) return;
+      const telHref = toTelHref(state.branch.phone);
+      if(!telHref) return;
+      logEventNoWait("click",{ action:"call", href:telHref });
+      window.location.href = telHref;
+    });
+
+    btnKakao.addEventListener("click",(e)=>{
+      e.preventDefault();
+      if(requireBranchOrOpenModal(e)) return;
+
+      const href = state.branch.kakao;
+      if(!href){
+        showToast("준비중입니다.");
+        logEventNoWait("click",{ action:"kakao_pending", href:"" });
+        return;
+      }
+      logEventNoWait("click",{ action:"kakao", href });
+      window.location.href = href;
+    });
+
+    btnReserve.addEventListener("click",(e)=>{
+      e.preventDefault();
+      if(requireBranchOrOpenModal(e)) return;
+      const href = state.branch.reserve || "";
+      logEventNoWait("click",{ action:"reserve", href });
+      if(href) window.location.href = href;
+    });
+
+    btnMore.addEventListener("click",()=>{
+      logEventNoWait("click",{ action:"more", href:btnMore.href });
+    });
+
+    /* 방문 1회 */
+    (function(){
+      const key="HB_VISIT_"+getSessionId();
+      if(!sessionStorage.getItem(key)){
+        sessionStorage.setItem(key,"1");
+        logEventNoWait("visit",{ action:"visit", href:"" });
+      }
+    })();
+
+    /* =========================
+       ✅ 배경 포커스: "프로모의 바로 위 라인"에 refY 정렬
+       ========================= */
+    const DESIGN_REF_Y_RATIO = 1168 / 1688;
+
+    function getBgOver(){
+      const v = getComputedStyle(document.documentElement).getPropertyValue("--bgOver").trim();
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : 24;
+    }
+
+    function applyBgFocusFixed(){
+      const canvas = document.getElementById("canvas");
+      const promo  = document.getElementById("promoPanel");
+      if(!canvas || !promo) return;
+
+      const ch = canvas.clientHeight;
+      const cw = canvas.clientWidth;
+      if(!ch || !cw) return;
+
+      const over = getBgOver();
+
+      /* ✅ 목표 라인: promoPanel의 top(=프로모 바로 위 라인) */
+      const targetY = promo.offsetTop;
+
+      const active = document.querySelector(".bg img.active");
+      if(!active) return;
+
+      const iw = active.naturalWidth || 0;
+      const ih = active.naturalHeight || 0;
+      if(!iw || !ih) return;
+
+      const boxW = cw + over * 2;
+      const boxH = ch + over * 2;
+
+      const scale = Math.max(boxW / iw, boxH / ih);
+      const dispH = ih * scale;
+
+      const refY = dispH * DESIGN_REF_Y_RATIO;
+
+      /* shift + refY = targetY + over  */
+      let shift = (targetY + over) - refY;
+
+      const minShift = (ch + over) - dispH;
+      const maxShift = over;
+
+      if(shift < minShift) shift = minShift;
+      if(shift > maxShift) shift = maxShift;
+
+      active.style.setProperty("--bgShift", shift.toFixed(2) + "px");
+    }
+
+    function applyBgFocusStabilized(){
+      applyBgFocusFixed();
+      requestAnimationFrame(()=>applyBgFocusFixed());
+      requestAnimationFrame(()=>requestAnimationFrame(()=>applyBgFocusFixed()));
+    }
+
+    window.addEventListener("resize", () => setTimeout(applyBgFocusStabilized, 60), {passive:true});
+    window.addEventListener("orientationchange", () => setTimeout(applyBgFocusStabilized, 120), {passive:true});
+    window.addEventListener("load", () => setTimeout(applyBgFocusStabilized, 180), {once:true});
+
+    /* 프로모 이미지 로드되면 포커싱 재계산(레이아웃 안정화) */
+    (function(){
+      const p = document.getElementById("promoImg");
+      if(!p) return;
+      if(p.complete) { setTimeout(applyBgFocusStabilized, 60); return; }
+      p.addEventListener("load", ()=> setTimeout(applyBgFocusStabilized, 60), {once:true});
+    })();
+
+    /* 슬라이드 + 도트 + 스와이프 */
+    const canvas=document.getElementById("canvas");
+    const slides=Array.from(document.querySelectorAll(".bg img"));
+    const dotsWrap=document.getElementById("dots");
+    let idx=0, timer=null, pausedUntil=0;
+
+    function buildDots(){
+      dotsWrap.innerHTML="";
+      slides.forEach((_,i)=>{
+        const d=document.createElement("div");
+        d.className="dot"+(i===idx?" on":"");
+        dotsWrap.appendChild(d);
+      });
+    }
+    function setDots(){
+      const ds=dotsWrap.querySelectorAll(".dot");
+      ds.forEach((d,i)=>d.classList.toggle("on", i===idx));
+    }
+
+    function showSlide(n){
+      slides[idx].classList.remove("active");
+      idx=(n+slides.length)%slides.length;
+      slides[idx].classList.add("active");
+      setDots();
+      setTimeout(applyBgFocusStabilized, 30);
+    }
+
+    function next(){ showSlide(idx+1); }
+    function prev(){ showSlide(idx-1); }
+
+    function startAuto(){
+      stopAuto();
+      timer=setInterval(()=>{
+        if(Date.now()<pausedUntil) return;
+        next();
+      }, SLIDE_INTERVAL_MS);
+    }
+    function stopAuto(){ if(timer){ clearInterval(timer); timer=null; } }
+    function pauseAuto(ms){ pausedUntil=Date.now()+ms; }
+
+    buildDots();
+    startAuto();
+
+    slides.forEach(img=>{
+      if(img.complete) return;
+      img.addEventListener("load", ()=> setTimeout(applyBgFocusStabilized, 60), {once:true});
+    });
+    setTimeout(applyBgFocusStabilized, 220);
+
+    let x0=null,y0=null,moved=false;
+    canvas.addEventListener("touchstart",(e)=>{
+      if(!e.touches||e.touches.length!==1) return;
+      x0=e.touches[0].clientX;
+      y0=e.touches[0].clientY;
+      moved=false;
+    },{passive:true});
+    canvas.addEventListener("touchmove",(e)=>{
+      if(x0===null) return;
+      const dx=e.touches[0].clientX-x0;
+      const dy=e.touches[0].clientY-y0;
+      if(Math.abs(dx)>18 && Math.abs(dx)>Math.abs(dy)) moved=true;
+    },{passive:true});
+    canvas.addEventListener("touchend",(e)=>{
+      if(x0===null) return;
+      const x1=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientX:x0;
+      const dx=x1-x0;
+      if(moved && Math.abs(dx)>42){
+        if(dx<0) next(); else prev();
+        pauseAuto(8000);
+      }
+      x0=null;y0=null;moved=false;
+    },{passive:true});
+  </script>
 </body>
 </html>

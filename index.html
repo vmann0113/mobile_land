@@ -10,7 +10,7 @@
   --maxW:520px;
   --fontMain:"Presentation",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
 
-  /* ✅ 전체 간격 3px 통일 */
+  /* ✅ 전체 간격 3px */
   --gap:3px;
   --safeB:env(safe-area-inset-bottom);
   --baseBottom:3px;
@@ -62,25 +62,25 @@ body{
   will-change:transform;
 }
 
-/* ===== 공통 UI 폭 ===== */
+/* ===== 공통 UI ===== */
 .ui{
   position:absolute;
   z-index:10;
   left:calc(16.5 / 390 * 100%);
   width:calc(357 / 390 * 100%);
+  color:#fff;
 }
 
-/* ===== 운영사 정보 ===== */
+/* ===== 운영사 ===== */
 .infoBar{
   height:var(--infoH);
   bottom:calc(var(--baseBottom) + var(--safeB));
-  border-radius:12px;
-  background:rgba(0,0,0,0.45);
-  border:1px solid rgba(255,255,255,0.15);
-  color:#fff;
   display:flex;
   align-items:center;
   justify-content:center;
+  border-radius:12px;
+  background:rgba(0,0,0,0.45);
+  border:1px solid rgba(255,255,255,0.15);
   font-size:11px;
   font-weight:900;
 }
@@ -114,6 +114,7 @@ body{
     + var(--actionH) + var(--gap)
     + var(--branchH) + var(--gap)
   );
+  border-radius:18px;
   background:rgba(255,255,255,0.12);
 }
 
@@ -161,6 +162,7 @@ body{
 </div>
 
 <script>
+/* 🔥 1168px 지점을 프로모 상단과 정확히 일치 */
 const DESIGN_REF_Y_RATIO = 1168 / 1688;
 
 function applyBgFocus(){

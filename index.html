@@ -246,7 +246,7 @@
     }
     .branch svg path{ stroke: rgba(255,255,255,0.92); }
 
-    /* ✅ 프로모: "이미지 1장만" 띄우기(투명 그대로) */
+    /* ✅ 프로모: 패널 자체를 "완전 투명" + 이미지 1장만 */
     .promoPanel{
       position:absolute;
       z-index:10;
@@ -259,21 +259,29 @@
         + var(--actionH) + var(--gap)
         + var(--branchH) + var(--gapPromoToBranch)
       );
-      border-radius: 22px;
-      overflow:hidden;
-      padding: 10px;
+
+      /* ✅ 여기 핵심: 패널 흔적 완전 제거 */
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+
+      border-radius: 0; /* 이미지가 둥글면 이미지가 담당 */
+      padding: 0;
       display:flex;
       align-items:center;
       justify-content:center;
+      pointer-events:none; /* ✅ 프로모는 클릭 안 받게(원하면 지워도 됨) */
     }
 
-    /* ✅ 오직 한 장만: contain + 가운데 정렬 */
     .promoOnly{
       width:100%;
       height:100%;
       display:flex;
       align-items:center;
       justify-content:center;
+      pointer-events:none;
     }
     .promoOnly img{
       max-width:100%;
@@ -283,7 +291,6 @@
       object-fit: contain;
       object-position:center;
       display:block;
-      image-rendering: auto;
     }
 
     /* ✅ 도트 */
@@ -420,8 +427,8 @@
 
       <div class="dots" id="dots" aria-hidden="true"></div>
 
-      <!-- ✅ 프로모: 이미지 1장만 -->
-      <div class="promoPanel glass" id="promoPanel" aria-label="이벤트 가격">
+      <!-- ✅ 프로모: glass 제거(패널 흔적 0), 이미지 1장만 -->
+      <div class="promoPanel" id="promoPanel" aria-label="이벤트 가격">
         <div class="promoOnly" aria-hidden="true">
           <img id="promoImg" src="assets/promo.webp" alt="">
         </div>

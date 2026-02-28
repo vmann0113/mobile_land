@@ -10,6 +10,11 @@
       --maxW: 520px;
       --fontMain: "Presentation", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo","Noto Sans KR", sans-serif;
 
+      /* ✅ 기준 디자인 캔버스(픽스) */
+      --designW: 390;
+      --designH: 844;
+      --scale: 1;
+
       /* glass */
       --glass-bg: rgba(255,255,255,0.15);
       --glass-border: rgba(255,255,255,0.16);
@@ -24,25 +29,29 @@
       --stackPadX: 16.5px;
       --stackPadBottom: 5px;
 
-      --gapModule: 6px;          /* ✅ 모든 모듈 간격 동일 */
+      --gapModule: 6px;
       --gapHeroToPromo: var(--gapModule);
       --gapPromoToBranch: var(--gapModule);
       --gapBranchToAction: var(--gapModule);
       --gapActionToInfo: var(--gapModule);
 
-      /* ====== HERO(광고 카드) 높이(여기만 폰별로 달라짐) ====== */
+      /* ====== HERO 높이(여기만 폰별로 달라짐) ====== */
       --heroMinH: 260px;
       --heroMaxH: 550px;
 
-      /* 도트 위치(광고 카드 하단에서 위로) */
       --dotsBottomInHero: 14px;
-
-      /* 배경 오버드로우(검은 틈 방지 여유) */
       --bgOver: 46px;
 
       /* iOS safe */
       --safeT: env(safe-area-inset-top);
       --safeB: env(safe-area-inset-bottom);
+
+      /* ✅ 고급 와인 버튼 팔레트 */
+      --wine1: #3a0b1a;
+      --wine2: #6b0f2c;
+      --wine3: #8a1638;
+      --wineBorder: rgba(255,255,255,0.22);
+      --wineGlow: rgba(138,22,56,0.35);
     }
 
     *{ box-sizing:border-box; }
@@ -70,23 +79,36 @@
       font-display: swap;
     }
 
+    /* ✅ 캔버스 픽스 + 스케일 */
     .wrap{
+      position:relative;
       width:100vw;
       height:100vh;
       height:100svh;
       height:100dvh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      overflow:hidden;
       padding-top: var(--safeT);
       padding-bottom: var(--safeB);
     }
 
+    .stage{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width: calc(var(--designW) * 1px);
+      height: calc(var(--designH) * 1px);
+      transform: translate(-50%, -50%) scale(var(--scale));
+      transform-origin: center center;
+      will-change: transform;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
     .canvas{
       position:relative;
-      width:min(100vw, var(--maxW));
-      aspect-ratio:390/844;
-      max-height: calc(100dvh - var(--safeT) - var(--safeB));
+      width: 100%;
+      height: 100%;
       border-radius:22px;
       overflow:hidden;
       background:#000;
@@ -94,14 +116,7 @@
       touch-action: pan-y;
     }
 
-    /* =========================
-       ✅ 전체 배경 블러(현재 광고 이미지)
-       ========================= */
-    .bgBlur{
-      position:absolute; inset:0; z-index:0;
-      overflow:hidden;
-      background:#000;
-    }
+    .bgBlur{ position:absolute; inset:0; z-index:0; overflow:hidden; background:#000; }
     .bgBlur img{
       position:absolute;
       top: calc(var(--bgOver) * -1);
@@ -127,9 +142,6 @@
         rgba(0,0,0,0.62) 100%);
     }
 
-    /* =========================
-       ✅ UI(모듈) 레이아웃
-       ========================= */
     .ui{
       position:absolute; inset:0;
       z-index:10;
@@ -137,9 +149,6 @@
       flex-direction:column;
     }
 
-    /* =========================
-       HERO(광고 카드)
-       ========================= */
     .hero{
       position:relative;
       flex: 1 1 auto;
@@ -148,8 +157,6 @@
       display:flex;
       align-items:center;
       justify-content:center;
-
-      /* ✅ hero ↔ promo 간격을 여기서 통제 */
       padding: 12px var(--stackPadX) var(--gapHeroToPromo);
     }
 
@@ -164,12 +171,7 @@
       box-shadow: 0 18px 60px rgba(0,0,0,0.28);
     }
 
-    /* 카드 내부 블러 레이어(여백 채움용) */
-    .heroSlidesBlur{
-      position:absolute; inset:0;
-      overflow:hidden;
-      z-index:0;
-    }
+    .heroSlidesBlur{ position:absolute; inset:0; overflow:hidden; z-index:0; }
     .heroSlidesBlur img{
       position:absolute;
       top: calc(var(--bgOver) * -1);
@@ -186,20 +188,14 @@
     }
     .heroSlidesBlur img.active{ opacity:0.85; }
 
-    /* ✅ 카드 내부 메인 레이어: 가로폭 100% 고정(모듈폭=이미지폭) */
-    .heroSlidesMain{
-      position:absolute; inset:0;
-      overflow:hidden;
-      z-index:1;
-    }
+    .heroSlidesMain{ position:absolute; inset:0; overflow:hidden; z-index:1; }
     .heroSlidesMain img{
       position:absolute;
       left:50%;
       top:50%;
       transform: translate(-50%, -50%);
-
-      width:100%;        /* ✅ 핵심: 가로폭 = 모듈폭 */
-      height:auto;       /* 높이는 이미지 비율대로 */
+      width:100%;
+      height:auto;
       opacity:0;
       transition: opacity .55s ease;
       filter: contrast(1.08) saturate(1.05);
@@ -207,7 +203,6 @@
     }
     .heroSlidesMain img.active{ opacity:1; }
 
-    /* 도트(광고 카드 안) */
     .dots{
       position:absolute;
       left:50%;
@@ -221,9 +216,6 @@
     .dot{ width:6px;height:6px;border-radius:50%; background: rgba(255,255,255,0.35); }
     .dot.on{ background: rgba(255,255,255,0.95); }
 
-    /* =========================
-       BOTTOM STACK(하단 모듈들)
-       ========================= */
     .bottomStack{
       flex: 0 0 auto;
       padding: 0 var(--stackPadX) var(--stackPadBottom);
@@ -241,7 +233,6 @@
         inset 0 1px 0 rgba(255,255,255,0.35);
     }
 
-    /* 프로모 */
     .promoPanel{
       height: var(--promoH);
       background: transparent !important;
@@ -265,7 +256,7 @@
       display:block;
     }
 
-    /* 지점 선택 */
+    /* ✅ 고급 와인 지점 버튼 */
     .branch{
       height: var(--branchH);
       border-radius: 999px;
@@ -275,11 +266,25 @@
       padding: 0 12px;
       cursor:pointer;
       user-select:none;
-      color: rgba(255,255,255,0.92);
-      text-shadow: 0 1px 8px rgba(0,0,0,0.45);
       gap: 8px;
       font-family: var(--fontMain);
       margin-bottom: var(--gapBranchToAction);
+
+      background:
+        radial-gradient(120% 180% at 30% 20%, rgba(255,255,255,0.20) 0%, rgba(255,255,255,0.00) 40%),
+        linear-gradient(180deg, var(--wine3) 0%, var(--wine2) 42%, var(--wine1) 100%) !important;
+
+      border: 1px solid var(--wineBorder) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+
+      box-shadow:
+        0 12px 26px rgba(0,0,0,0.34),
+        0 0 0 1px rgba(0,0,0,0.10) inset,
+        0 10px 22px var(--wineGlow);
+
+      color: rgba(255,255,255,0.98);
+      text-shadow:none;
     }
     .branch .txt{
       font-weight:900;
@@ -289,11 +294,12 @@
       text-overflow:ellipsis;
       text-align:center;
       line-height:1;
+      color: rgba(255,255,255,0.98);
     }
     .branch svg{ width:14px; height:14px; opacity:0.95; flex: 0 0 auto; }
-    .branch svg path{ stroke: rgba(255,255,255,0.92); }
+    .branch svg path{ stroke: rgba(255,255,255,0.98) !important; }
+    .branch:active{ transform: translateY(1px); filter: brightness(1.02); }
 
-    /* 액션 패널 */
     .action-panel{
       height: var(--actionH);
       border-radius: 22px;
@@ -342,7 +348,6 @@
       font-family: var(--fontMain);
     }
 
-    /* 운영사 정보 바 */
     .infoBar{
       height: var(--infoH);
       border-radius: 12px;
@@ -359,7 +364,6 @@
       font-family: var(--fontMain);
     }
 
-    /* Toast */
     .toast{
       position:absolute;
       left:50%;
@@ -383,7 +387,6 @@
       transform: translateX(-50%) translateY(-2px);
     }
 
-    /* 모달 */
     .modal-backdrop{
       position:absolute; inset:0; z-index:50;
       display:none; align-items:flex-end; justify-content:center;
@@ -452,7 +455,6 @@
       font-family: var(--fontMain);
     }
 
-    /* ✅ 낮은 화면 대응: 히어로 높이만 조절(다른 모듈은 고정) */
     @media (max-height: 760px){
       :root{
         --heroMinH: 230px;
@@ -463,114 +465,106 @@
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="canvas" id="canvas">
+  <div class="wrap" id="wrap">
 
-      <!-- 전체 블러 배경 -->
-      <div class="bgBlur" aria-hidden="true" id="bgBlur">
-        <img class="active" src="assets/bg1.webp" alt="">
-        <img src="assets/bg2.webp" alt="">
-        <img src="assets/bg3.webp" alt="">
-        <img src="assets/bg4.webp" alt="">
-      </div>
-      <div class="bgDim" aria-hidden="true"></div>
+    <div class="stage" id="stage">
+      <div class="canvas" id="canvas">
 
-      <!-- UI -->
-      <div class="ui" id="ui">
-
-        <!-- HERO(광고 카드) -->
-        <div class="hero" id="hero">
-          <div class="heroCard" id="heroCard">
-
-            <div class="heroSlidesBlur" aria-hidden="true" id="heroSlidesBlur">
-              <img class="active" src="assets/bg1.webp" alt="">
-              <img src="assets/bg2.webp" alt="">
-              <img src="assets/bg3.webp" alt="">
-              <img src="assets/bg4.webp" alt="">
-            </div>
-
-            <div class="heroSlidesMain" aria-hidden="true" id="heroSlidesMain">
-              <img class="active" src="assets/bg1.webp" alt="">
-              <img src="assets/bg2.webp" alt="">
-              <img src="assets/bg3.webp" alt="">
-              <img src="assets/bg4.webp" alt="">
-            </div>
-
-            <div class="dots" id="dots" aria-hidden="true"></div>
-          </div>
+        <div class="bgBlur" aria-hidden="true" id="bgBlur">
+          <img class="active" src="assets/bg1.webp" alt="">
+          <img src="assets/bg2.webp" alt="">
+          <img src="assets/bg3.webp" alt="">
+          <img src="assets/bg4.webp" alt="">
         </div>
+        <div class="bgDim" aria-hidden="true"></div>
 
-        <!-- 하단 스택 -->
-        <div class="bottomStack" id="bottomStack">
-
-          <div class="promoPanel" id="promoPanel" aria-label="이벤트 가격">
-            <img id="promoImg" src="assets/promo.webp" alt="">
-          </div>
-
-          <div class="branch glass" id="openBranch" role="button" tabindex="0">
-            <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-
-          <div class="action-panel glass">
-            <div class="btnRow">
-              <div class="btnCol">
-                <a class="actionPng" id="btnCall" href="#"
-                   style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
-                <div class="btnLabel">전화문의</div>
+        <div class="ui" id="ui">
+          <div class="hero" id="hero">
+            <div class="heroCard" id="heroCard">
+              <div class="heroSlidesBlur" aria-hidden="true" id="heroSlidesBlur">
+                <img class="active" src="assets/bg1.webp" alt="">
+                <img src="assets/bg2.webp" alt="">
+                <img src="assets/bg3.webp" alt="">
+                <img src="assets/bg4.webp" alt="">
               </div>
 
-              <div class="btnCol">
-                <a class="actionPng" id="btnKakao" href="#"
-                   style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
-                <div class="btnLabel">카톡문의</div>
+              <div class="heroSlidesMain" aria-hidden="true" id="heroSlidesMain">
+                <img class="active" src="assets/bg1.webp" alt="">
+                <img src="assets/bg2.webp" alt="">
+                <img src="assets/bg3.webp" alt="">
+                <img src="assets/bg4.webp" alt="">
               </div>
 
-              <div class="btnCol">
-                <a class="actionPng" id="btnReserve" href="#"
-                   style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
-                <div class="btnLabel">네이버예약</div>
-              </div>
-
-              <div class="btnCol">
-                <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr/9"
-                   style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
-                <div class="btnLabel">더 알아보기</div>
-              </div>
+              <div class="dots" id="dots" aria-hidden="true"></div>
             </div>
           </div>
 
-          <div class="infoBar" id="openBiz" role="button" tabindex="0">
-            광고운영사 정보 보기
-          </div>
+          <div class="bottomStack" id="bottomStack">
+            <div class="promoPanel" id="promoPanel" aria-label="이벤트 가격">
+              <img id="promoImg" src="assets/promo.webp" alt="">
+            </div>
 
+            <div class="branch glass" id="openBranch" role="button" tabindex="0">
+              <div class="txt" id="branchText">전국 11개 지점 운영중 | 희망 지점을 선택하세요.</div>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <div class="action-panel glass">
+              <div class="btnRow">
+                <div class="btnCol">
+                  <a class="actionPng" id="btnCall" href="#"
+                     style="background-image:url('assets/btn-call.png');" aria-label="전화문의"></a>
+                  <div class="btnLabel">전화문의</div>
+                </div>
+
+                <div class="btnCol">
+                  <a class="actionPng" id="btnKakao" href="#"
+                     style="background-image:url('assets/btn-kakao.png');" aria-label="카톡문의"></a>
+                  <div class="btnLabel">카톡문의</div>
+                </div>
+
+                <div class="btnCol">
+                  <a class="actionPng" id="btnReserve" href="#"
+                     style="background-image:url('assets/btn-reserve.png');" aria-label="네이버예약"></a>
+                  <div class="btnLabel">네이버예약</div>
+                </div>
+
+                <div class="btnCol">
+                  <a class="actionPng" id="btnMore" href="https://hanbeam.co.kr/9"
+                     style="background-image:url('assets/btn-more.png');" aria-label="더 알아보기"></a>
+                  <div class="btnLabel">더 알아보기</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="infoBar" id="openBiz" role="button" tabindex="0">
+              광고운영사 정보 보기
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="toast" id="toast">준비중입니다.</div>
+        <div class="toast" id="toast">준비중입니다.</div>
 
-      <!-- 지점 선택 모달 -->
-      <div class="modal-backdrop" id="branchBackdrop" aria-hidden="true">
-        <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
-          <div class="modalHead">
-            <div>지점 선택</div>
-            <button id="closeBranch" type="button">닫기</button>
+        <div class="modal-backdrop" id="branchBackdrop" aria-hidden="true">
+          <div class="modal" role="dialog" aria-modal="true" aria-label="지점 선택">
+            <div class="modalHead">
+              <div>지점 선택</div>
+              <button id="closeBranch" type="button">닫기</button>
+            </div>
+            <div class="modalBody" id="branchList"></div>
           </div>
-          <div class="modalBody" id="branchList"></div>
         </div>
-      </div>
 
-      <!-- 사업자정보 모달 -->
-      <div class="modal-backdrop" id="bizBackdrop" aria-hidden="true">
-        <div class="modal" role="dialog" aria-modal="true" aria-label="광고운영사 정보">
-          <div class="modalHead">
-            <div>광고운영사 정보</div>
-            <button id="closeBiz" type="button">닫기</button>
-          </div>
-          <div class="modalBody">
-            <div class="bizText">
+        <div class="modal-backdrop" id="bizBackdrop" aria-hidden="true">
+          <div class="modal" role="dialog" aria-modal="true" aria-label="광고운영사 정보">
+            <div class="modalHead">
+              <div>광고운영사 정보</div>
+              <button id="closeBiz" type="button">닫기</button>
+            </div>
+            <div class="modalBody">
+              <div class="bizText">
 |  광고운영사 정보  |
 운영사 : ㈜브이커뮤니케이션    |    대표자 : 김정태    |    사업자등록번호 : 744-87-02865
 주소 : 부산광역시 남구 수영로 74-5, 210호(문현동, 무학프라자)
@@ -578,15 +572,43 @@
 
 본 페이지는 ㈜브이커뮤니케이션이 운영·관리하는 공식 상담 페이지입니다.
 한복 상담 및 제작은 제휴 업체와 협업하여 진행됩니다.
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
+      </div>
     </div>
+
   </div>
 
   <script>
+    /* ✅ 390x844 캔버스 픽스 + 스케일(큰 화면에서는 커지게!) */
+    (function(){
+      const designW = 390;
+      const designH = 844;
+
+      function applyScale(){
+        const vv = window.visualViewport;
+        const vw = vv ? vv.width : window.innerWidth;
+        const vh = vv ? vv.height : window.innerHeight;
+
+        /* ✅ 핵심 변경: ,1 제거 → 큰 화면에서 s>1이면 확대됨 */
+        const s = Math.min(vw / designW, vh / designH);
+
+        document.documentElement.style.setProperty('--scale', String(s));
+      }
+
+      window.addEventListener('resize', applyScale, {passive:true});
+      if(window.visualViewport){
+        window.visualViewport.addEventListener('resize', applyScale, {passive:true});
+        window.visualViewport.addEventListener('scroll', applyScale, {passive:true});
+      }
+      window.addEventListener('orientationchange', ()=>setTimeout(applyScale, 60), {passive:true});
+      window.addEventListener('load', ()=>setTimeout(applyScale, 60), {once:true});
+      applyScale();
+    })();
+
     const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
     const SLIDE_INTERVAL_MS = 5500;
 
@@ -660,7 +682,6 @@
       }catch(e){}
     }
 
-    /* Toast */
     const toastEl = document.getElementById("toast");
     let toastTimer=null;
     function showToast(msg){
@@ -670,7 +691,6 @@
       toastTimer=setTimeout(()=>toastEl.classList.remove("show"), 1400);
     }
 
-    /* 지점 선택 모달 */
     const branchBackdrop = document.getElementById("branchBackdrop");
     const openBranch = document.getElementById("openBranch");
     const closeBranch = document.getElementById("closeBranch");
@@ -710,7 +730,6 @@
     closeBranch.addEventListener("click", closeBranchModal);
     branchBackdrop.addEventListener("click", (e)=>{ if(e.target===branchBackdrop) closeBranchModal(); });
 
-    /* 사업자정보 모달 */
     const bizBackdrop = document.getElementById("bizBackdrop");
     const openBiz = document.getElementById("openBiz");
     const closeBiz = document.getElementById("closeBiz");
@@ -729,7 +748,6 @@
     closeBiz.addEventListener("click", closeBizModal);
     bizBackdrop.addEventListener("click", (e)=>{ if(e.target===bizBackdrop) closeBizModal(); });
 
-    /* 버튼 */
     const btnCall=document.getElementById("btnCall");
     const btnKakao=document.getElementById("btnKakao");
     const btnReserve=document.getElementById("btnReserve");
@@ -779,7 +797,6 @@
       logEventNoWait("click",{ action:"more", href:btnMore.href });
     });
 
-    /* 방문 1회 */
     (function(){
       const key="HB_VISIT_"+getSessionId();
       if(!sessionStorage.getItem(key)){
@@ -788,7 +805,6 @@
       }
     })();
 
-    /* 슬라이드 + 도트 + 스와이프 (hero + blur 둘 다 전환) */
     const canvas = document.getElementById("canvas");
     const heroMainImgs = Array.from(document.querySelectorAll("#heroSlidesMain img"));
     const heroBlurImgs = Array.from(document.querySelectorAll("#heroSlidesBlur img"));
@@ -840,7 +856,6 @@
     buildDots();
     startAuto();
 
-    /* 스와이프 */
     let x0=null,y0=null,moved=false;
     canvas.addEventListener("touchstart",(e)=>{
       if(!e.touches||e.touches.length!==1) return;

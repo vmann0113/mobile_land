@@ -18,20 +18,21 @@
       --safeB: env(safe-area-inset-bottom);
 
       --infoH: 42px;
-      --actionH: 107px;
+      --actionH: 104px;  /* ✅ 3px 줄임(107 -> 104) */
       --branchH: 34.5px;
       --dotsH: 10px;
 
-      /* ✅ promo height (카드+안내문 포함) */
-      --promoH: 118px;
+      /* ✅ promo height (5px 줄임) */
+      --promoH: 113px;
 
-      /* Hanbeam Wine (고급 톤) */
+      /* ✅ 간격 미세 조절용 */
+      --gapPromoToBranch: 2px; /* 프로모와 지점선택 사이 간격(좁게) */
+      --gapDotsToPromo: 6px;   /* 도트와 프로모 사이 간격 */
+
+      /* Hanbeam Wine */
       --wine1: #7b2e2e;
       --wine2: #6a2626;
       --wine3: #4f1b1b;
-
-      /* ✅ 배경 포커스 Y (JS가 세팅) */
-      --bgPosY: 0%;
     }
 
     *{ box-sizing:border-box; }
@@ -44,11 +45,7 @@
       text-size-adjust:100%;
     }
 
-    /* ✅ Paperlogy 폰트: assets에 넣어서 쓰는 방식(권장)
-       아래 파일을 준비해서 넣어줘:
-       /assets/fonts/Paperlogy-ExtraBold.woff2
-       /assets/fonts/Paperlogy-Bold.woff2
-    */
+    /* ✅ Paperlogy 폰트(assets에 넣는 방식) */
     @font-face{
       font-family: "Paperlogy";
       src: url("assets/fonts/Paperlogy-Bold.woff2") format("woff2");
@@ -87,7 +84,7 @@
       touch-action: pan-y;
     }
 
-    /* ✅ 배경: cover 유지 + "포커스 Y"를 JS로 자동 조정 */
+    /* ✅ 배경: cover + JS에서 translateY(px)로 포커스 고정 */
     .bg{
       position:absolute;
       inset:0;
@@ -100,12 +97,12 @@
       width:100%;
       height:100%;
       object-fit: cover;
-      object-position: center var(--bgPosY);
+      object-position: top center;
       opacity:0;
-      transition: opacity .6s ease, object-position .25s ease;
+      transition: opacity .6s ease;
       filter: contrast(1.08) saturate(1.05);
-      transform: translateZ(0);
-      will-change: opacity, object-position;
+      transform: translate3d(0, var(--bgShift, 0px), 0);
+      will-change: opacity, transform;
     }
     .bg img.active{ opacity:1; }
 
@@ -243,7 +240,7 @@
     }
     .branch svg path{ stroke: rgba(255,255,255,0.92); }
 
-    /* ✅ 프로모 패널: 도트 아래 / 지점 선택 위 */
+    /* ✅ 프로모: 이제 '지점 선택 바로 위'에 붙게(간격 축소) */
     .promoPanel{
       position:absolute;
       z-index:10;
@@ -251,12 +248,12 @@
       width: calc(357 / 390 * 100%);
       height: var(--promoH);
 
+      /* ✅ dotsH 제거! (간격 벌어지던 원인) */
       bottom: calc(
         12px + var(--safeB)
         + var(--infoH) + var(--gap)
         + var(--actionH) + var(--gap)
-        + var(--branchH) + var(--gap)
-        + var(--dotsH) + var(--gap)
+        + var(--branchH) + var(--gapPromoToBranch)
       );
 
       border-radius: 22px;
@@ -272,7 +269,6 @@
       gap:10px;
     }
 
-    /* ✅ 카드: 네가 준 이미지 느낌으로 더 가깝게 */
     .promoCard{
       flex:1 1 0;
       height: 70px;
@@ -285,7 +281,6 @@
       flex-direction:column;
     }
 
-    /* 헤더(와인색, 고급 그라데이션) */
     .promoHead{
       height: 30px;
       display:flex;
@@ -302,7 +297,6 @@
       text-shadow: 0 1px 6px rgba(0,0,0,0.25);
     }
 
-    /* 바디(화이트, 타이포 강하게) */
     .promoBody{
       flex:1;
       background: rgba(255,255,255,0.92);
@@ -320,7 +314,7 @@
       color: rgba(0,0,0,0.55);
       letter-spacing: -0.04em;
       text-decoration: line-through;
-      text-decoration-thickness: 3px;         /* ✅ 이미지처럼 굵게 */
+      text-decoration-thickness: 3px;
       text-decoration-color: rgba(0,0,0,0.45);
       text-underline-offset: 3px;
       white-space:nowrap;
@@ -343,8 +337,8 @@
     }
     .promoNow .num{
       font-weight: 800;
-      font-size: 38px;          /* ✅ 큰 숫자 */
-      letter-spacing: -0.06em;  /* ✅ 자간 좁게 */
+      font-size: 38px;
+      letter-spacing: -0.06em;
       color: rgba(111,45,45,0.98);
       line-height: 1;
     }
@@ -365,7 +359,7 @@
       padding-left: 2px;
     }
 
-    /* 도트(프로모 위) */
+    /* ✅ 도트: 프로모 위로 올림 */
     .dots{
       position:absolute;
       z-index:10;
@@ -375,8 +369,8 @@
         12px + var(--safeB)
         + var(--infoH) + var(--gap)
         + var(--actionH) + var(--gap)
-        + var(--branchH) + var(--gap)
-        + var(--promoH) + var(--gap)
+        + var(--branchH) + var(--gapPromoToBranch)
+        + var(--promoH) + var(--gapDotsToPromo)
       );
       display:flex;
       gap:6px;
@@ -480,7 +474,6 @@
     }
 
     @media (max-width: 360px){
-      :root{ --promoH: 112px; }
       .promoHead{ font-size: 14px; }
       .promoNow .num{ font-size: 34px; }
       .promoWas{ font-size: 15px; }
@@ -502,10 +495,9 @@
 
       <div class="dots" id="dots" aria-hidden="true"></div>
 
-      <!-- ✅ 프로모(가격) 패널: 도트 아래 / 지점 선택 위 -->
       <div class="promoPanel glass" id="promoPanel" aria-label="이벤트 가격">
         <div class="promoRow">
-          <div class="promoCard" id="promoA">
+          <div class="promoCard">
             <div class="promoHead" id="promoATitle">웨딩 촬영용 한복대여</div>
             <div class="promoBody">
               <div style="display:flex;align-items:baseline;gap:8px;">
@@ -518,7 +510,7 @@
             </div>
           </div>
 
-          <div class="promoCard" id="promoB">
+          <div class="promoCard">
             <div class="promoHead" id="promoBTitle">결혼식 한복대여</div>
             <div class="promoBody">
               <div style="display:flex;align-items:baseline;gap:8px;">
@@ -532,7 +524,6 @@
           </div>
         </div>
 
-        <!-- ✅ 안내문 추가 -->
         <div class="promoFoot">본 가격은 기간 이벤트 가격입니다. 변동될 수 있습니다.</div>
       </div>
 
@@ -613,10 +604,7 @@
   </div>
 
   <script>
-    /* ✅ GAS WebApp URL */
     const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzffPcpmzRqRPZQSEWZLHP8iJX2xMvl7Aw6SxkZutPac-kEPNAxSIt1vLqNhn_wxMGI/exec";
-
-    /* ✅ 배경 전환 속도 */
     const SLIDE_INTERVAL_MS = 5500;
 
     const BRANCHES = [
@@ -650,7 +638,6 @@
       return digits ? ("tel:" + digits) : "";
     }
 
-    /* ✅ Safari/인앱 안정 로깅 */
     function logEventNoWait(type, data = {}){
       const payload = {
         type,
@@ -693,50 +680,7 @@
       toastTimer=setTimeout(()=>toastEl.classList.remove("show"), 1400);
     }
 
-    /* ✅ 프로모 가격 변경(원하면 한 줄로만 바꾸면 됨) */
-    function setPromoPrices({aTitle,aWas,aNow,bTitle,bWas,bNow}){
-      if(aTitle) document.getElementById("promoATitle").textContent = aTitle;
-      if(aWas)   document.getElementById("promoAWas").textContent = aWas;
-      if(aNow!==undefined) document.getElementById("promoANow").textContent = String(aNow);
-
-      if(bTitle) document.getElementById("promoBTitle").textContent = bTitle;
-      if(bWas)   document.getElementById("promoBWas").textContent = bWas;
-      if(bNow!==undefined) document.getElementById("promoBNow").textContent = String(bNow);
-    }
-    // 예: setPromoPrices({aWas:"20만원", aNow:11, bWas:"33만원", bNow:25});
-
-    /* ✅ 배경 포커스 자동 맞춤:
-       "프로모 패널 바로 위"에 배경의 중요한 부분이 오도록
-       => object-position의 Y(%)를 자동으로 계산해 --bgPosY로 반영
-    */
-    function applyBgFocus(){
-      const canvas = document.getElementById("canvas");
-      const promo = document.getElementById("promoPanel");
-      if(!canvas || !promo) return;
-
-      const ch = canvas.clientHeight;
-      if(!ch) return;
-
-      // promo의 top(캔버스 기준)
-      const promoTop = promo.offsetTop;
-
-      // '안전영역'이 promo에 가리지 않도록, promoTop보다 조금 위를 포커스 중심으로 잡음
-      // 숫자(160)는 "얼굴/문구가 promo 바로 위에 오게" 만드는 경험값 → 필요하면 140~200 사이로 조절
-      const focusPx = Math.max(0, promoTop - 160);
-
-      // focusPx를 object-position 퍼센트로 변환 (0~100%)
-      const y = Math.min(100, Math.max(0, (focusPx / ch) * 100));
-
-      // top 기준으로 너무 붙는 것 방지 (최소 6% 정도는 유지)
-      const yClamped = Math.max(6, y);
-
-      canvas.style.setProperty("--bgPosY", yClamped.toFixed(2) + "%");
-    }
-
-    window.addEventListener("resize", applyBgFocus, {passive:true});
-    window.addEventListener("orientationchange", () => setTimeout(applyBgFocus, 150), {passive:true});
-
-    /* 모달/상태 */
+    /* 상태/모달 */
     const state = { branch:null };
 
     const branchBackdrop = document.getElementById("branchBackdrop");
@@ -778,7 +722,7 @@
     closeBranch.addEventListener("click", closeBranchModal);
     branchBackdrop.addEventListener("click", (e)=>{ if(e.target===branchBackdrop) closeBranchModal(); });
 
-    /* 사업자 정보 모달 */
+    /* 사업자정보 모달 */
     const bizBackdrop = document.getElementById("bizBackdrop");
     const openBiz = document.getElementById("openBiz");
     const closeBiz = document.getElementById("closeBiz");
@@ -818,8 +762,6 @@
       const telHref = toTelHref(state.branch.phone);
       if(!telHref) return;
       logEventNoWait("click",{ action:"call", href:telHref });
-
-      // 사용자 클릭 안에서 실행 (사파리 경고 최소화)
       window.location.href = telHref;
     });
 
@@ -858,6 +800,64 @@
       }
     })();
 
+    /* =========================
+       ✅ 배경 포커스 고정(요청 4)
+       - 디자인 기준 y=1168 (1688 기준) 위치가
+       - "가격 이벤트 바로 위 라인"에 오도록
+       ========================= */
+    const DESIGN_REF_Y_RATIO = 1168 / 1688; // 약 0.6915
+
+    function applyBgFocusFixed(){
+      const canvas = document.getElementById("canvas");
+      const promo  = document.getElementById("promoPanel");
+      if(!canvas || !promo) return;
+
+      const ch = canvas.clientHeight;
+      const cw = canvas.clientWidth;
+      if(!ch || !cw) return;
+
+      // ✅ 목표 라인: promoPanel의 top에서 6px 위
+      const targetY = promo.offsetTop - 6;
+
+      // 활성 슬라이드 찾기
+      const active = document.querySelector(".bg img.active");
+      if(!active) return;
+
+      // 이미지 원본 크기 필요
+      const iw = active.naturalWidth || 0;
+      const ih = active.naturalHeight || 0;
+      if(!iw || !ih) return;
+
+      // cover 스케일 계산
+      const scale = Math.max(cw / iw, ch / ih);
+      const dispH = ih * scale;
+
+      // 이미지 내부 기준 refY
+      const refY = dispH * DESIGN_REF_Y_RATIO;
+
+      // 이미지 top을 0으로 두고 translateY로 맞춘다:
+      // shift + refY = targetY  => shift = targetY - refY
+      let shift = targetY - refY;
+
+      // clamp: 위로는 0(더 내리면 상단 빈공간) / 아래로는 (ch - dispH)(더 올리면 하단 빈공간)
+      const minShift = ch - dispH;
+      const maxShift = 0;
+      if(shift < minShift) shift = minShift;
+      if(shift > maxShift) shift = maxShift;
+
+      // 적용
+      active.style.setProperty("--bgShift", shift.toFixed(2) + "px");
+    }
+
+    function applyBgFocusAllSlides(){
+      // active만 적용 (성능/일관성)
+      applyBgFocusFixed();
+    }
+
+    window.addEventListener("resize", () => setTimeout(applyBgFocusAllSlides, 80), {passive:true});
+    window.addEventListener("orientationchange", () => setTimeout(applyBgFocusAllSlides, 150), {passive:true});
+    window.addEventListener("load", () => setTimeout(applyBgFocusAllSlides, 200), {once:true});
+
     /* 슬라이드 + 도트 + 스와이프 */
     const canvas=document.getElementById("canvas");
     const slides=Array.from(document.querySelectorAll(".bg img"));
@@ -876,15 +876,17 @@
       const ds=dotsWrap.querySelectorAll(".dot");
       ds.forEach((d,i)=>d.classList.toggle("on", i===idx));
     }
+
     function showSlide(n){
       slides[idx].classList.remove("active");
       idx=(n+slides.length)%slides.length;
       slides[idx].classList.add("active");
       setDots();
 
-      // 슬라이드 바뀔 때도 포커스 재계산(아이폰에서 특히 유용)
-      requestAnimationFrame(applyBgFocus);
+      // ✅ 슬라이드 변경 즉시 포커스 재적용
+      setTimeout(applyBgFocusAllSlides, 40);
     }
+
     function next(){ showSlide(idx+1); }
     function prev(){ showSlide(idx-1); }
 
@@ -901,9 +903,12 @@
     buildDots();
     startAuto();
 
-    // 최초 1회 포커스 계산 (폰트/레이아웃 안정 후 한번 더)
-    requestAnimationFrame(applyBgFocus);
-    window.addEventListener("load", () => setTimeout(applyBgFocus, 250), {once:true});
+    // 이미지 로드 타이밍 보정
+    slides.forEach(img=>{
+      if(img.complete) return;
+      img.addEventListener("load", ()=> setTimeout(applyBgFocusAllSlides, 60), {once:true});
+    });
+    setTimeout(applyBgFocusAllSlides, 220);
 
     let x0=null,y0=null,moved=false;
     canvas.addEventListener("touchstart",(e)=>{
